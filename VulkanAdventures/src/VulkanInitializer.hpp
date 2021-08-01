@@ -1,6 +1,8 @@
 #pragma once
 
 #define GLFW_INCLUDE_VULKAN
+#define DEBUG !NDEBUG
+
 #include <GLFW\glfw3.h>
 #include <utility>
 #include <string>
@@ -12,7 +14,7 @@ namespace va {
 	class VulkanInitializer
 	{
 	public:
-		VulkanInitializer(std::string, std::string) throw (std::runtime_error);
+		VulkanInitializer(std::string, std::string);
 		~VulkanInitializer();
 
 		//Removing the copy constructor
@@ -25,7 +27,10 @@ namespace va {
 		std::string engineName;
 
 		VkInstance _vkInstance;
-		VulkanInitializer* prepareInstance() throw (std::runtime_error);
+
+		VulkanInitializer* prepareInstance();
+		std::vector<const char*> getCompitableGlfwExtensions();
+		std::vector<const char*> requestValidationLayers();
 
 		// Getting details of supported Vulkan Extensions
 		inline std::vector<VkExtensionProperties> getSupportVkExtensions() {
@@ -40,11 +45,28 @@ namespace va {
 		}
 
 		// Getting details of required extensions for Glfw
-		inline std::pair<uint32_t, const char**> getGlfwExtensions() {
+		inline std::vector<const char*> getGlfwExtensions() {
 			uint32_t glfwExtensionsCount{ 0 };
 			const char** glfwExtensions;
 			glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionsCount);
-			return std::make_pair(glfwExtensionsCount, glfwExtensions);
+
+			std::vector<const char*> glfwExt(glfwExtensions, glfwExtensions + glfwExtensionsCount);
+#if DEBUG
+			glfwExt.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+			return glfwExt;
+		}
+
+		// Getting details of validation layers
+		inline std::vector<VkLayerProperties> getValidationLayers() {
+			uint32_t validationLayersCount;
+			vkEnumerateInstanceLayerProperties(&validationLayersCount, nullptr);
+			if (validationLayersCount > 0) {
+				std::vector<VkLayerProperties> validationLayers(validationLayersCount);
+				vkEnumerateInstanceLayerProperties(&validationLayersCount, validationLayers.data());
+				return validationLayers;
+			}
+			return std::vector<VkLayerProperties>();
 		}
 	};
 }

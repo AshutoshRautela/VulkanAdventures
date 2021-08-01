@@ -7,7 +7,7 @@ namespace va {
 	class VAWindow
 	{
 	public:
-		VAWindow(uint32_t, uint32_t, std::string) throw(std::runtime_error);
+		VAWindow(uint32_t, uint32_t, std::string);
 		void PollEvents();
 		~VAWindow();
 

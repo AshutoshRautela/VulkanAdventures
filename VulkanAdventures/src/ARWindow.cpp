@@ -1,8 +1,8 @@
 #include <iostream>
-#include "ARWindow.hpp";
+#include "ARWindow.hpp"
 
 namespace va {
-	VAWindow::VAWindow(uint32_t width, uint32_t height, std::string title) throw(std::runtime_error) : width{ width }, height{ height }, title{ title }, glfwWindow{ nullptr } {
+	VAWindow::VAWindow(uint32_t width, uint32_t height, std::string title) : width{ width }, height{ height }, title{ title }, glfwWindow{ nullptr } {
 		if (!glfwInit()) {
 			throw std::runtime_error("Failed to Initialize GLFW");
 		}
