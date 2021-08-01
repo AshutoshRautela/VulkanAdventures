@@ -158,13 +158,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ARWindow.cpp" />
+    <ClCompile Include="src\ARWindow.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="VulkanInitializer.cpp" />
+    <ClCompile Include="src\VulkanInitializer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ARWindow.hpp" />
-    <ClInclude Include="VulkanInitializer.hpp" />
+    <ClInclude Include="src\ARWindow.hpp" />
+    <ClInclude Include="src\VulkanInitializer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

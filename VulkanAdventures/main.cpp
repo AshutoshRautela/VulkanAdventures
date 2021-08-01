@@ -11,8 +11,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "ARWindow.hpp"
-#include "VulkanInitializer.hpp"
+#include "src\ARWindow.hpp"
+#include "src\VulkanInitializer.hpp"
 
 std::unique_ptr<va::VAWindow> window;
 std::unique_ptr<va::VulkanInitializer> vulkanSetup;
