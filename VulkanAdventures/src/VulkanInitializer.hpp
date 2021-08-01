@@ -1,14 +1,17 @@
 #pragma once
 
 #define GLFW_INCLUDE_VULKAN
+#include <GLFW\glfw3.h>
+
 #define DEBUG !NDEBUG
 
-#include <GLFW\glfw3.h>
 #include <utility>
 #include <string>
 #include <stdexcept>
 #include <iostream>
 #include <vector>
+
+#include "Utils.hpp"
 
 namespace va {
 	class VulkanInitializer
@@ -16,6 +19,13 @@ namespace va {
 	public:
 		VulkanInitializer(std::string, std::string);
 		~VulkanInitializer();
+
+		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+			VkDebugUtilsMessageSeverityFlagBitsEXT,
+			VkDebugUtilsMessageTypeFlagsEXT,
+			const VkDebugUtilsMessengerCallbackDataEXT*,
+			void*
+		);
 
 		//Removing the copy constructor
 		VulkanInitializer(const VulkanInitializer&) = delete;
@@ -27,10 +37,29 @@ namespace va {
 		std::string engineName;
 
 		VkInstance _vkInstance;
+#if DEBUG
+		VkDebugUtilsMessengerCreateInfoEXT _createMessengerinfo;
+		VkDebugUtilsMessengerEXT _vkDebugMessager;
+#endif // DEBUG
 
-		VulkanInitializer* prepareInstance();
 		std::vector<const char*> getCompitableGlfwExtensions();
 		std::vector<const char*> requestValidationLayers();
+
+		// Initialization Process
+		VulkanInitializer* prepareInstance();
+
+#if DEBUG
+		VulkanInitializer* prepareDebugMessenger();
+#endif // DEBUG
+
+		inline void createDebugMessengerInfo() {
+			this->_createMessengerinfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+			this->_createMessengerinfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+			this->_createMessengerinfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+			this->_createMessengerinfo.pfnUserCallback = VulkanInitializer::debugCallback;
+		}
 
 		// Getting details of supported Vulkan Extensions
 		inline std::vector<VkExtensionProperties> getSupportVkExtensions() {

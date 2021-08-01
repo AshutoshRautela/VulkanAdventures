@@ -160,10 +160,12 @@
   <ItemGroup>
     <ClCompile Include="src\ARWindow.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
     <ClCompile Include="src\VulkanInitializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ARWindow.hpp" />
+    <ClInclude Include="src\Utils.hpp" />
     <ClInclude Include="src\VulkanInitializer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

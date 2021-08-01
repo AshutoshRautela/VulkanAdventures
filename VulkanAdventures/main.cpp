@@ -32,5 +32,6 @@ int main(int args1, char** args2) {
 	{
 		window->PollEvents();
 	}
+	
 	return EXIT_SUCCESS;
 };
