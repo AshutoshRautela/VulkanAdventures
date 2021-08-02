@@ -20,7 +20,7 @@ std::unique_ptr<va::VulkanInitializer> vulkanSetup;
 int main(int args1, char** args2) {
 	try {
 		window = std::make_unique<va::VAWindow>(2048, 1024, "My Window");
-		vulkanSetup = std::make_unique<va::VulkanInitializer>("First Application", "Vulkan Engine");
+		vulkanSetup = std::make_unique<va::VulkanInitializer>(window->GetRawWindow(), "First Application", "Vulkan Engine");
 	}
 	catch (const std::exception& e) {
 		std::cout << "Caught an Exception: " << e.what() << std::endl;

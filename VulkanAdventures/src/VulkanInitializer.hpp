@@ -14,12 +14,13 @@
 #include <functional>
 
 #include "Utils.hpp"
+#include "ARWindow.hpp"
 
 namespace va {
 	class VulkanInitializer
 	{
 	public:
-		VulkanInitializer(std::string, std::string);
+		VulkanInitializer(GLFWwindow* window, std::string, std::string);
 		~VulkanInitializer();
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -38,21 +39,28 @@ namespace va {
 		struct QueueFamilyIndices
 		{
 			int32_t graphicsFamily = -1;
+			int32_t presentFamily = -1;
 
 			inline bool indicesFound() {
-				return graphicsFamily >= 0;
+				return graphicsFamily >= 0 && presentFamily >= 0;
 			}
-		};
+		} _queueFamilyIndices;
 
 		std::string applicationName;
 		std::string engineName;
+		GLFWwindow* window;
 
 		VkInstance _vkInstance;
+		VkSurfaceKHR _vkSurfaceKHR;
 		VkPhysicalDevice _vkPhysicalDevice;
+		VkDevice _vkLogicalDevice;
+		VkQueue _vkGraphicsQueue;
+		VkQueue _vkPresentQueue;
 
 #if DEBUG
 		VkDebugUtilsMessengerCreateInfoEXT _createMessengerinfo;
 		VkDebugUtilsMessengerEXT _vkDebugMessager;
+		std::vector<const char*> _validationLayers;
 
 		VulkanInitializer* prepareDebugMessenger();
 #endif // DEBUG
@@ -62,8 +70,13 @@ namespace va {
 
 		// Initialization Process
 		VulkanInitializer* prepareInstance();
+		// Create Window Surface
+		VulkanInitializer* createWindowSurface();
 		// Prepare Physical Device
 		VulkanInitializer* preparePhysicalDevice();
+		// Prepare Logical Device
+		VulkanInitializer* prepareLogicalDevice();
+
 #if DEBUG
 		inline void createDebugMessengerInfo() {
 			this->_createMessengerinfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -88,7 +101,7 @@ namespace va {
 			return std::vector<VkPhysicalDevice>();
 		}
 
-		inline VkPhysicalDevice getSuitableDevice(const std::vector<VkPhysicalDevice>& devices) const {
+		inline VkPhysicalDevice getSuitableDevice(const std::vector<VkPhysicalDevice>& devices) {
 			VkPhysicalDevice suitableDevice = VK_NULL_HANDLE;
 
 			for (const VkPhysicalDevice& device: devices) {
@@ -105,7 +118,6 @@ namespace va {
 			}
 
 			// Checking for supported queue families
-			QueueFamilyIndices queueFamilyIndices;
 			uint32_t queueFamilyCount = 0;
 			vkGetPhysicalDeviceQueueFamilyProperties(suitableDevice, &queueFamilyCount, nullptr);
 
@@ -114,17 +126,23 @@ namespace va {
 				std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 				vkGetPhysicalDeviceQueueFamilyProperties(suitableDevice, &queueFamilyCount, queueFamilies.data());
 
+				VkBool32 presentSupport = false;
+
 				for (const VkQueueFamilyProperties& queueFamily : queueFamilies) {
 					if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-						queueFamilyIndices.graphicsFamily = i;
+						this->_queueFamilyIndices.graphicsFamily = i;
 					}
-					if (queueFamilyIndices.indicesFound()) {
+					if (!presentSupport) {
+						vkGetPhysicalDeviceSurfaceSupportKHR(suitableDevice, i, this->_vkSurfaceKHR, &presentSupport);
+						this->_queueFamilyIndices.presentFamily = i;
+					}
+					if (this->_queueFamilyIndices.indicesFound()) {
 						break;
 					}
 					i++;
 				}
 			}			
-			if (!queueFamilyIndices.indicesFound()) {
+			if (!this->_queueFamilyIndices.indicesFound()) {
 				suitableDevice = VK_NULL_HANDLE;
 			}
 			return suitableDevice;

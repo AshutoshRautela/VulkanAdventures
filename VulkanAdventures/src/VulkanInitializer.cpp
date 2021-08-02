@@ -1,18 +1,21 @@
 #include "VulkanInitializer.hpp"
+#include <set>
 
 namespace va {
-	VulkanInitializer::VulkanInitializer(std::string appName, std::string engineName): applicationName{ appName }, engineName{engineName} {
+	VulkanInitializer::VulkanInitializer(GLFWwindow* window, std::string appName, std::string engineName) : window { window }, applicationName { appName }, engineName{ engineName } {
 		this->_vkInstance = nullptr;
-		this->prepareInstance()
-			->preparePhysicalDevice();
-		
+		this->prepareInstance();
 #if DEBUG
 		this->_createMessengerinfo = {};
 		this->_vkDebugMessager = nullptr;
 		this->prepareDebugMessenger();
 #endif // 0
+		this->createWindowSurface();
+		this->preparePhysicalDevice()
+			->prepareLogicalDevice();
 	}
 
+#if DEBUG
 	VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInitializer::debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -41,8 +44,10 @@ namespace va {
 				throw std::runtime_error("Requested Validation Layers are not available");
 			}
 		}
-		return requiredvalidationLayers;
+		this->_validationLayers = requiredvalidationLayers;
+		return this->_validationLayers;
 	}
+#endif
 
 	std::vector<const char*> VulkanInitializer::getCompitableGlfwExtensions() {
 		std::vector<VkExtensionProperties> supportedExtensions = this->getSupportVkExtensions();
@@ -115,6 +120,13 @@ namespace va {
 	}
 #endif // DEBUG
 
+	VulkanInitializer* VulkanInitializer::createWindowSurface() {
+		if (glfwCreateWindowSurface(this->_vkInstance, this->window, nullptr, &this->_vkSurfaceKHR) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to created Window Surface");
+		}	
+		std::cout << "Created Window Surface Successfully" << std::endl;
+	}
+
 	VulkanInitializer* VulkanInitializer::preparePhysicalDevice() {
 		std::cout << "Founding a suitable physical device " << std::endl;
 		std::vector<VkPhysicalDevice> physicalDevices = this->getPhysicalDevices();
@@ -128,20 +140,67 @@ namespace va {
 		vkGetPhysicalDeviceProperties(device, &properties);
 
 		std::cout << "Found suitable physical device: " << properties.deviceName << std::endl;
-
+		this->_vkPhysicalDevice = device;
 		return this;
 	}
 
+	VulkanInitializer* VulkanInitializer::prepareLogicalDevice() {
+		std::cout << "Creating a Logical Device " << std::endl;
+		float queuePriorities = 1.0;
+
+		std::vector<VkDeviceQueueCreateInfo> queueCreateDeviceInfos;
+		std::set<int32_t> uniqueQueueFamiles = { this->_queueFamilyIndices.graphicsFamily, this->_queueFamilyIndices.presentFamily };
+
+		for (int32_t queueFamily : uniqueQueueFamiles) {
+			VkDeviceQueueCreateInfo vkDeviceQueueCreateInfo{};
+			vkDeviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			vkDeviceQueueCreateInfo.queueFamilyIndex = queueFamily;
+			vkDeviceQueueCreateInfo.queueCount = 1;
+			vkDeviceQueueCreateInfo.pQueuePriorities = &queuePriorities;
+
+			queueCreateDeviceInfos.push_back(vkDeviceQueueCreateInfo);
+		}
+
+		VkPhysicalDeviceFeatures vkPhysicalDeviceFeatures{};
+
+		VkDeviceCreateInfo vkDeviceCreateInfo{};
+		vkDeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		vkDeviceCreateInfo.pQueueCreateInfos = queueCreateDeviceInfos.data();
+		vkDeviceCreateInfo.queueCreateInfoCount = queueCreateDeviceInfos.size();
+		vkDeviceCreateInfo.pEnabledFeatures = &vkPhysicalDeviceFeatures;
+		vkDeviceCreateInfo.enabledExtensionCount = 0;
+
+#if DEBUG
+		vkDeviceCreateInfo.enabledLayerCount = this->_validationLayers.size();
+		vkDeviceCreateInfo.ppEnabledLayerNames = this->_validationLayers.data();
+#endif // DEBUG
+		vkDeviceCreateInfo.enabledLayerCount = 0;
+		
+		if (vkCreateDevice(this->_vkPhysicalDevice, &vkDeviceCreateInfo, nullptr, &this->_vkLogicalDevice) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create Logical Device");
+		}
+		std::cout << "Created Logical device successfully" << std::endl;
+		vkGetDeviceQueue(this->_vkLogicalDevice, this->_queueFamilyIndices.graphicsFamily, 0, &this->_vkGraphicsQueue );
+		if (this->_vkGraphicsQueue == VK_NULL_HANDLE) {
+			throw std::runtime_error("Failed to fetch queue from Logical Device");
+		}
+		std::cout << "Fetched graphics queue handle from the Logical Device" << std::endl;
+
+		vkGetDeviceQueue(this->_vkLogicalDevice, this->_queueFamilyIndices.presentFamily, 0, &this->_vkPresentQueue);
+		if (this->_vkPresentQueue == VK_NULL_HANDLE) {
+			throw std::runtime_error("Failed to fetch present queue from Logical Device");
+		}
+		std::cout << "Fetched present queue handle from the Logical Device" << std::endl;
+		return this;
+	}
 
 	VulkanInitializer::~VulkanInitializer() {
+		vkDestroyDevice(this->_vkLogicalDevice, nullptr);
+		vkDestroySurfaceKHR(this->_vkInstance, this->_vkSurfaceKHR, nullptr);
 #if DEBUG
 		this->_createMessengerinfo = {};
-		if (this->_vkDebugMessager) {
-			va::vkDestroyDebugUtilsMessengerEXT(this->_vkInstance, this->_vkDebugMessager, nullptr);
-		}
+		va::vkDestroyDebugUtilsMessengerEXT(this->_vkInstance, this->_vkDebugMessager, nullptr);
 #endif
-		if (this->_vkInstance) {
-			vkDestroyInstance(this->_vkInstance, nullptr);
-		}
+		vkDestroyInstance(this->_vkInstance, nullptr);
 	}
 }
