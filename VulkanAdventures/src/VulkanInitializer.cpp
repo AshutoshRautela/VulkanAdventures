@@ -3,14 +3,14 @@
 namespace va {
 	VulkanInitializer::VulkanInitializer(std::string appName, std::string engineName): applicationName{ appName }, engineName{engineName} {
 		this->_vkInstance = nullptr;
+		this->prepareInstance()
+			->preparePhysicalDevice();
+		
 #if DEBUG
 		this->_createMessengerinfo = {};
 		this->_vkDebugMessager = nullptr;
-		this->prepareInstance();
-#endif // 0
-#if DEBUG
 		this->prepareDebugMessenger();
-#endif
+#endif // 0
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInitializer::debugCallback(
@@ -115,15 +115,33 @@ namespace va {
 	}
 #endif // DEBUG
 
+	VulkanInitializer* VulkanInitializer::preparePhysicalDevice() {
+		std::cout << "Founding a suitable physical device " << std::endl;
+		std::vector<VkPhysicalDevice> physicalDevices = this->getPhysicalDevices();
+		VkPhysicalDevice device = this->getSuitableDevice(physicalDevices);
+
+		if (device == VK_NULL_HANDLE) {
+			throw std::runtime_error("Couldn't find a suitable physical device");
+		}
+
+		VkPhysicalDeviceProperties properties;
+		vkGetPhysicalDeviceProperties(device, &properties);
+
+		std::cout << "Found suitable physical device: " << properties.deviceName << std::endl;
+
+		return this;
+	}
+
+
 	VulkanInitializer::~VulkanInitializer() {
 #if DEBUG
 		this->_createMessengerinfo = {};
 		if (this->_vkDebugMessager) {
-		//	va::vkDestroyDebugUtilsMessengerEXT(this->_vkInstance, this->_vkDebugMessager, nullptr);
+			va::vkDestroyDebugUtilsMessengerEXT(this->_vkInstance, this->_vkDebugMessager, nullptr);
 		}
 #endif
 		if (this->_vkInstance) {
-		//	vkDestroyInstance(this->_vkInstance, nullptr);
+			vkDestroyInstance(this->_vkInstance, nullptr);
 		}
 	}
 }
