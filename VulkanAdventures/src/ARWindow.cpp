@@ -6,7 +6,9 @@ namespace va {
 		if (!glfwInit()) {
 			throw std::runtime_error("Failed to Initialize GLFW");
 		}
+#if _DEBUG
 		LOGGER_INFO("GLFW Initialized");
+#endif
 
 		// Specifically mention not to create OpenGL Context for the window
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -16,7 +18,9 @@ namespace va {
 		if (!this->glfwWindow) {
 			throw std::runtime_error("Failed to create GLFW Window");
 		}
+#if _DEBUG
 		LOGGER_INFO("GLFW Window created");
+#endif
 	}
 
 	void VAWindow::PollEvents() {
@@ -25,8 +29,12 @@ namespace va {
 
 	VAWindow::~VAWindow() {
 		glfwDestroyWindow(this->glfwWindow);
+#if _DEBUG
 		LOGGER_INFO("GLFW Window Destroyed");
+#endif
 		glfwTerminate();
+#if _DEBUG
 		LOGGER_INFO("GLFW Terminated");
+#endif
 	}
 }

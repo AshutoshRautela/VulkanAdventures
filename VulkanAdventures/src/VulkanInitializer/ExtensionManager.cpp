@@ -1,19 +1,74 @@
 #include "ExtensionManager.h"
 
 namespace va {
-	std::pair<uint32_t, const char**> ExtensionManager::getGLFWExtensions() {
-		uint32_t glfwExtensionsCount = 0;
-		const char** glfwExtensions;
 
+	std::vector<const char*> ExtensionManager::getGlfwExtensions() {
+		uint32_t glfwExtensionsCount = 0;
+
+		// GLFW Extensions
+		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionsCount);
 		
-		LOGGER_INFO("GLFW REQUIRED EXTENSIONS");
+		return std::vector<const char*>(glfwExtensions, glfwExtensions + glfwExtensionsCount);;
+	}
 
-		for (int i = 0; i < glfwExtensionsCount; i++) {
-			//std::cout << glfwExtensions[i] << std::endl;
-			LOGGER_INFO(glfwExtensions[i]);
+	std::vector<const char*> ExtensionManager::getRequiredExtensions() {
+		if (this->_requiredExtensions.size() == 0) {
+			this->_requiredExtensions = this->getGlfwExtensions();
+#if _DEBUG
+			// Validation Extension
+			this->_requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+			LOGGER_INFO("\n----->REQUIRED EXTENSIONS<-----\n");
+			for (auto& ex : this->_requiredExtensions) {
+				LOGGER_INFO(ex);
+			}
+			LOGGER_INFO("\n----------\n");
+#endif
+		}
+		return _requiredExtensions;
+	}
+
+	std::vector<VkExtensionProperties> ExtensionManager::getAvailableExtensions() {
+		if (this->_availableExtensions.size() == 0) {
+			uint32_t availableExtensionCount = 0;
+			vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, nullptr);
+
+			this->_availableExtensions = std::vector<VkExtensionProperties>(availableExtensionCount);
+			vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, this->_availableExtensions.data());
+
+#if _DEBUG
+			LOGGER_INFO("\n----->AVAILABLE EXTENSIONS<-----\n");
+			for (auto& ex : this->_availableExtensions) {
+				LOGGER_INFO(ex.extensionName);
+			}
+			LOGGER_INFO("\n----------\n");
+#endif
+		}
+		return this->_availableExtensions;
+	}
+
+	bool ExtensionManager::isRequiredExtensionsSupported() {
+		this->getRequiredExtensions();
+		this->getAvailableExtensions();
+
+		for (auto& rex : this->_requiredExtensions) {
+			bool found = false;
+			for (auto& aex : this->_availableExtensions) {
+				if (strcmp(rex, aex.extensionName) == 0) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				LOGGER_WARN("Extension not supported {0}", rex);
+				return false;
+			}
 		}
 
-		return std::make_pair(glfwExtensionsCount, glfwExtensions);
+#if _DEBUG
+		LOGGER_INFO("All Extensions are supported!");
+#endif
+		return true;
 	}
 }

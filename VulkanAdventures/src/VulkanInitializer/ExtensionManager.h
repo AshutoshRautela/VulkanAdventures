@@ -1,7 +1,9 @@
 #pragma once
 
+#pragma warning(push, 0)
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW\glfw3.h>
+#pragma warning(pop)
 
 #include <vector>
 #include <algorithm>
@@ -12,8 +14,19 @@
 namespace va {
 	class ExtensionManager
 	{
+	private:
+		std::vector<const char*> _requiredExtensions;
+		std::vector<VkExtensionProperties> _availableExtensions;
+
 	public:
-		static std::pair<uint32_t, const char**> getGLFWExtensions();
+		ExtensionManager() {};
+		ExtensionManager(const ExtensionManager&) = delete;
+		const ExtensionManager& operator=(const ExtensionManager&) = delete;
+
+		std::vector<const char*> getGlfwExtensions();
+		std::vector<const char*> getRequiredExtensions();
+		std::vector<VkExtensionProperties> getAvailableExtensions();
+		bool isRequiredExtensionsSupported();
 	};
 }
 

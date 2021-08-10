@@ -1,8 +1,11 @@
 #pragma once
+
+#pragma warning(push, 0)
 #include <glm\glm.hpp>
 #include <GLFW\glfw3.h>
-#include <string>
+#pragma warning(pop)
 
+#include <string>
 #include ".\Logger.h"
 
 namespace va {
