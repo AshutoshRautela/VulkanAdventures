@@ -12,9 +12,10 @@
 #include <vector>
 #include <optional>
 #include <functional>
+#include <set>
 
-#include "Utils.hpp"
-#include "ARWindow.hpp"
+#include "..\Utils.hpp"
+#include "..\ARWindow.hpp"
 
 namespace va {
 	class VulkanInitializer
@@ -49,6 +50,10 @@ namespace va {
 		std::string applicationName;
 		std::string engineName;
 		GLFWwindow* window;
+
+		std::vector<const char*> extensions = {
+				VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
 
 		VkInstance _vkInstance;
 		VkSurfaceKHR _vkSurfaceKHR;
@@ -104,7 +109,7 @@ namespace va {
 		inline VkPhysicalDevice getSuitableDevice(const std::vector<VkPhysicalDevice>& devices) {
 			VkPhysicalDevice suitableDevice = VK_NULL_HANDLE;
 
-			for (const VkPhysicalDevice& device: devices) {
+			for (const VkPhysicalDevice& device : devices) {
 				VkPhysicalDeviceProperties properties;
 				vkGetPhysicalDeviceProperties(device, &properties);
 
@@ -115,6 +120,10 @@ namespace va {
 					suitableDevice = device;
 					break;
 				}
+			}
+
+			if (suitableDevice == VK_NULL_HANDLE) {
+				return suitableDevice;
 			}
 
 			// Checking for supported queue families
@@ -141,11 +150,33 @@ namespace va {
 					}
 					i++;
 				}
-			}			
+			}
 			if (!this->_queueFamilyIndices.indicesFound()) {
 				suitableDevice = VK_NULL_HANDLE;
+				return suitableDevice;
 			}
+
+			if (!this->checkDeviceExtensionSupport(suitableDevice)) {
+				std::cout << "Physical Device doesn't support swap chain extension " << std::endl;
+				suitableDevice = VK_NULL_HANDLE;
+				return suitableDevice;
+			}
+
 			return suitableDevice;
+		}
+
+		inline bool checkDeviceExtensionSupport(const VkPhysicalDevice& device) {
+			uint32_t deviceExtensionCount;
+			vkEnumerateDeviceExtensionProperties(device, nullptr, &deviceExtensionCount, nullptr);
+
+			std::vector<VkExtensionProperties> availableExtenions(deviceExtensionCount);
+			vkEnumerateDeviceExtensionProperties(device, nullptr, &deviceExtensionCount, availableExtenions.data());
+
+			std::set<std::string> requiredExtensions(this->extensions.begin(), this->extensions.end());
+			for (const auto& extension : availableExtenions) {
+				requiredExtensions.erase(extension.extensionName);
+			}
+			return requiredExtensions.empty();
 		}
 
 		// Getting details of supported Vulkan Extensions

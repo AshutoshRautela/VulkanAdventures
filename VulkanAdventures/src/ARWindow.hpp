@@ -3,6 +3,8 @@
 #include <GLFW\glfw3.h>
 #include <string>
 
+#include ".\Logger.h"
+
 namespace va {
 	class VAWindow
 	{

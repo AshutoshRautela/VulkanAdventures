@@ -168,7 +168,8 @@ namespace va {
 		vkDeviceCreateInfo.pQueueCreateInfos = queueCreateDeviceInfos.data();
 		vkDeviceCreateInfo.queueCreateInfoCount = queueCreateDeviceInfos.size();
 		vkDeviceCreateInfo.pEnabledFeatures = &vkPhysicalDeviceFeatures;
-		vkDeviceCreateInfo.enabledExtensionCount = 0;
+		vkDeviceCreateInfo.enabledExtensionCount = this->extensions.size();
+		vkDeviceCreateInfo.ppEnabledExtensionNames = this->extensions.data();
 
 #if DEBUG
 		vkDeviceCreateInfo.enabledLayerCount = this->_validationLayers.size();

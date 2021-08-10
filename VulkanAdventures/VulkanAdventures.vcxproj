@@ -158,15 +158,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\VulkanInitializer\ExtensionManager.cpp" />
     <ClCompile Include="src\ARWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\Utils.cpp" />
-    <ClCompile Include="src\VulkanInitializer.cpp" />
+    <ClCompile Include="src\VulkanInitializer\VulkanInstanceManager.cpp" />
+    <ClCompile Include="src\VulkanInitializer\VulkanInitializer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Logger.h" />
+    <ClInclude Include="src\VulkanInitializer\ExtensionManager.h" />
     <ClInclude Include="src\ARWindow.hpp" />
     <ClInclude Include="src\Utils.hpp" />
-    <ClInclude Include="src\VulkanInitializer.hpp" />
+    <ClInclude Include="src\VulkanInitializer\VulkanInstanceManager.h" />
+    <ClInclude Include="src\VulkanInitializer\VulkanInitializer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
