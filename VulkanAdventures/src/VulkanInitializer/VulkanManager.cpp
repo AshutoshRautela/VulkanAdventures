@@ -39,5 +39,15 @@ namespace va {
 				this->_extensionManager->getRequiredExtensions()
 			);
 #endif
+		this->_queueManager = std::make_shared<QueueManager>();
+		this->_deviceManager = std::make_unique<DeviceManager>(this->_instanceManager->getVkInstance(), this->_queueManager);
+		this->_deviceManager->pickPhysicalDevice();
+#if _DEBUG
+		this->_deviceManager->createLogicalDevice(this->_extensionManager->getRequiredExtensions(), this->_validationManager->RequiredValidationLayers());
+#endif
+#if _RELEASE
+		this->_deviceManager->createLogicalDevice(this->_extensionManager->getRequiredExtensions());
+#endif
+		this->_queueManager->UpdateQueues(this->_deviceManager->getLogicalDevice());
 	}
 }

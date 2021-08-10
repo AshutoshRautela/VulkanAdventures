@@ -160,6 +160,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\VulkanInitializer\QueueManager.cpp" />
+    <ClCompile Include="src\VulkanInitializer\DeviceManager.cpp" />
     <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\VulkanInitializer\ExtensionManager.cpp" />
     <ClCompile Include="src\ARWindow.cpp" />
@@ -171,6 +173,8 @@
     <ClCompile Include="src\VulkanInitializer\VulkanManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\VulkanInitializer\QueueManager.h" />
+    <ClInclude Include="src\VulkanInitializer\DeviceManager.h" />
     <ClInclude Include="src\Logger.h" />
     <ClInclude Include="src\VulkanInitializer\ExtensionManager.h" />
     <ClInclude Include="src\ARWindow.hpp" />

@@ -20,6 +20,7 @@ namespace va {
 
 	public:
 		ExtensionManager() {};
+		~ExtensionManager();
 		ExtensionManager(const ExtensionManager&) = delete;
 		const ExtensionManager& operator=(const ExtensionManager&) = delete;
 

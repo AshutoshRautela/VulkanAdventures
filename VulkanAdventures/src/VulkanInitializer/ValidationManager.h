@@ -32,7 +32,7 @@ namespace va {
 		~ValidationManager();
 
 		bool checkValidationSupport();
-		void setupDebugMessenger(VkInstance vkInstance);
+		void setupDebugMessenger(const VkInstance& vkInstance);
 
 		inline VkDebugUtilsMessengerCreateInfoEXT* getDebugCreateInfo() {
 			return &this->_messengerCreateinfo; 

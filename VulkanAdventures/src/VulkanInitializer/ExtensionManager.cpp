@@ -71,4 +71,9 @@ namespace va {
 #endif
 		return true;
 	}
+
+	ExtensionManager::~ExtensionManager() {
+		this->_requiredExtensions.clear();
+		this->_availableExtensions.clear();
+	}
 }

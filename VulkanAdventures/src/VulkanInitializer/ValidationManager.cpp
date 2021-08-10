@@ -31,7 +31,7 @@ namespace va {
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT || VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-			LOGGER_INFO("Validation Info: {0}", pCallbackData->pMessage);
+			//LOGGER_INFO("Validation Info: {0}", pCallbackData->pMessage);
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
@@ -39,14 +39,14 @@ namespace va {
 			break;
 
 		default:
-			LOGGER_INFO("Validation Unknown: {0}", pCallbackData->pMessage);
+			//LOGGER_INFO("Validation Unknown: {0}", pCallbackData->pMessage);
 			break;
 		}
 
 		return VK_FALSE;
 	}
 
-	void ValidationManager::setupDebugMessenger(VkInstance vkInstance) {
+	void ValidationManager::setupDebugMessenger(const VkInstance& vkInstance) {
 		this->_vkInstance = vkInstance;
 
 		VkResult res = va::vkCreateDebugUtilsMessengerEXT(vkInstance, &this->_messengerCreateinfo, nullptr, &this->_debugUtilsMessenger);

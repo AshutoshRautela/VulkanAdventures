@@ -3,6 +3,8 @@
 #include "./VulkanInstanceManager.h"
 #include "./ValidationManager.h"
 #include "./ExtensionManager.h"
+#include "./DeviceManager.h"
+#include "./QueueManager.h"
 
 namespace va {
 	class VulkanManager
@@ -18,6 +20,8 @@ namespace va {
 
 		std::unique_ptr<ExtensionManager> _extensionManager;
 		std::unique_ptr<ValidationManager> _validationManager;
+		std::unique_ptr<DeviceManager> _deviceManager;
+		std::shared_ptr<QueueManager> _queueManager;
 	};
 }
 
