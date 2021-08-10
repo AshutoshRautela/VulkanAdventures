@@ -29,7 +29,6 @@ int main(int args1, char** args2) {
 		return EXIT_FAILURE;
 	}
 
-
 	while (!glfwWindowShouldClose(window->GetRawWindow()))
 	{
 		window->PollEvents();
