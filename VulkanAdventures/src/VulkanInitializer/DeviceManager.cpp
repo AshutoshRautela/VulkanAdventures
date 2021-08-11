@@ -32,7 +32,7 @@ namespace va {
 		return this->_availablePhysicalDevices;
 	}
 
-	void DeviceManager::pickPhysicalDevice() {
+	void DeviceManager::pickPhysicalDevice(const VkSurfaceKHR& vkSurfaceKHR) {
 		this->getAvailableDevices();
 		if (this->_availablePhysicalDevices.size() == 0) {
 			throw std::runtime_error("No physical devices available");
@@ -40,7 +40,7 @@ namespace va {
 
 		// Check a Device is Suitable
 		for(auto& apd : this->_availablePhysicalDevices) {
-			if(this->isDeviceSuitable(apd) && this->_queueManager->checkAvailableQueueFamilies(apd)) {
+			if(this->isDeviceSuitable(apd) && this->_queueManager->checkAvailableQueueFamilies(apd, vkSurfaceKHR)) {
 				this->_vkPhysicalDevice = apd;
 				break;
 			}
@@ -56,18 +56,25 @@ namespace va {
 
 #if _DEBUG
 	void DeviceManager::createLogicalDevice(std::vector<const char*> requiredExtensions, std::vector<const char*> validationLayers) {
-		VkDeviceQueueCreateInfo queueCreateInfo{};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = this->_queueManager->getQueueFamilyIndices().graphisFamily.value();
-		queueCreateInfo.queueCount = 1;
-		queueCreateInfo.pQueuePriorities = &this->_queueManager->getQueueFamilyIndices().queuePriority;
+		
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<uint32_t> uniqueQueueFamilies = { this->_queueManager->getQueueFamilyIndices().graphisFamily.value(), this->_queueManager->getQueueFamilyIndices().presentFamily.value() };
+
+		for (auto& uqf : uniqueQueueFamilies) {
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = uqf;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &this->_queueManager->getQueueFamilyIndices().queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 
 		VkDeviceCreateInfo vkDeviceCreateInfo{};
 		vkDeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		vkDeviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-		vkDeviceCreateInfo.queueCreateInfoCount = 1;
+		vkDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+		vkDeviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(uniqueQueueFamilies.size());
 		vkDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
 		vkDeviceCreateInfo.enabledExtensionCount = 0;
@@ -86,18 +93,24 @@ namespace va {
 #if _RELEASE
 	void DeviceManager::createLogicalDevice(std::vector<const char*> requiredExtensions) {
 
-		VkDeviceQueueCreateInfo queueCreateInfo{};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = this->_queueManager->getQueueFamilyIndices().graphisFamily.value();
-		queueCreateInfo.queueCount = 1;
-		queueCreateInfo.pQueuePriorities = &this->_queueManager->getQueueFamilyIndices().queuePriority;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<uint32_t> uniqueQueueFamilies = { this->_queueManager->getQueueFamilyIndices().graphisFamily.value(), this->_queueManager->getQueueFamilyIndices().presentFamily.value() };
+
+		for (auto& uqf : uniqueQueueFamilies) {
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = uqf;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &this->_queueManager->getQueueFamilyIndices().queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 
 		VkDeviceCreateInfo vkDeviceCreateInfo{};
 		vkDeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		vkDeviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-		vkDeviceCreateInfo.queueCreateInfoCount = 1;
+		vkDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+		vkDeviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(uniqueQueueFamilies.size());
 		vkDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
 		vkDeviceCreateInfo.enabledLayerCount = 0;

@@ -13,10 +13,12 @@
 namespace va {
 
 	struct QueueFamilyIndices {
+
 		std::optional<uint32_t> graphisFamily;
+		std::optional<uint32_t> presentFamily;
 		float queuePriority = 1.0f;
 
-		inline bool isAvailable() { return this->graphisFamily.has_value(); }
+		inline bool isAvailable() { return this->graphisFamily.has_value() && this->presentFamily.has_value(); }
 	};
 
 	class QueueManager
@@ -24,10 +26,11 @@ namespace va {
 		QueueFamilyIndices _queueFamilyIndices;
 
 		VkQueue _graphicsQueue;
+		VkQueue _presentQueue;
 
 	public:
 		inline const QueueFamilyIndices& getQueueFamilyIndices() { return this->_queueFamilyIndices;  }
-		bool checkAvailableQueueFamilies(const VkPhysicalDevice&);
+		bool checkAvailableQueueFamilies(const VkPhysicalDevice&, const VkSurfaceKHR&);
 
 		void UpdateQueues(const VkDevice&);
 	};

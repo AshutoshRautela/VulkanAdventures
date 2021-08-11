@@ -64,7 +64,19 @@ namespace va {
 #endif
 	}
 
+	void VulkanInstanceManager::createSurface(GLFWwindow* window) {
+		VkResult res = glfwCreateWindowSurface(this->_vkInstance, window, nullptr, &this->_vkSurface);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create Window Surface");
+		}
+#if _DEBUG
+		LOGGER_INFO("Successfully created Window Surface");
+#endif // _DEBUG
+
+	}
+
 	VulkanInstanceManager::~VulkanInstanceManager() {
+		vkDestroySurfaceKHR(this->_vkInstance, this->_vkSurface, nullptr);
 		vkDestroyInstance(this->_vkInstance, nullptr);
 #if _DEBUG
 		LOGGER_INFO("Vulkan Instance destroyed");

@@ -1,7 +1,7 @@
 #include "VulkanManager.h"
 
 namespace va {
-	VulkanManager::VulkanManager(std::string appName, std::string engineName) {
+	VulkanManager::VulkanManager(const std::shared_ptr<VAWindow>& vaWindow, std::string appName, std::string engineName) {
 		this->_extensionManager = std::make_unique<ExtensionManager>();
 		auto extensionSupport = this->_extensionManager->isRequiredExtensionsSupported();
 		if (!extensionSupport) {
@@ -39,9 +39,10 @@ namespace va {
 				this->_extensionManager->getRequiredExtensions()
 			);
 #endif
+		this->_instanceManager->createSurface(vaWindow->GetRawWindow());
 		this->_queueManager = std::make_shared<QueueManager>();
 		this->_deviceManager = std::make_unique<DeviceManager>(this->_instanceManager->getVkInstance(), this->_queueManager);
-		this->_deviceManager->pickPhysicalDevice();
+		this->_deviceManager->pickPhysicalDevice(this->_instanceManager->getWindowSurface());
 #if _DEBUG
 		this->_deviceManager->createLogicalDevice(this->_extensionManager->getRequiredExtensions(), this->_validationManager->RequiredValidationLayers());
 #endif

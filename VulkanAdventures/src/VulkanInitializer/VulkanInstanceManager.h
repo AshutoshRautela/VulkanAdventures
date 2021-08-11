@@ -18,6 +18,7 @@ namespace va {
 		VkApplicationInfo _vkApplicationInfo;
 		VkInstanceCreateInfo _vkInstanceCreateInfo;
 		VkInstance _vkInstance;
+		VkSurfaceKHR _vkSurface;
 
 		std::string _applicationName;
 		std::string _engineName;
@@ -37,11 +38,14 @@ namespace va {
 		);
 		~VulkanInstanceManager();
 
+		void createSurface(GLFWwindow*);
+
 		// Deactivating the Copy Constructor and the Assignment Operator 
 		VulkanInstanceManager(const VulkanInstanceManager&) = delete;
 		const VulkanInstanceManager& operator=(const VulkanInstanceManager&) = delete;
 
-		inline VkInstance getVkInstance() { return this->_vkInstance; }
+		inline VkInstance getVkInstance() const { return this->_vkInstance; }
+		inline const VkSurfaceKHR& getWindowSurface() const { return this->_vkSurface; };
 	};
 
 }

@@ -5,12 +5,13 @@
 #include "./ExtensionManager.h"
 #include "./DeviceManager.h"
 #include "./QueueManager.h"
+#include "../ARWindow.hpp";
 
 namespace va {
 	class VulkanManager
 	{
 	public:
-		VulkanManager(std::string, std::string);
+		VulkanManager(const std::shared_ptr<VAWindow>& ,std::string, std::string);
 
 		VulkanManager(const VulkanManager&) = delete;
 		const VulkanManager& operator=(const VulkanManager&) = delete;

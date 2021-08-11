@@ -8,9 +8,11 @@
 #include <vector>
 #include <stdexcept>
 #include <optional>
+#include <set>
 
 #include "..\Logger.h"
 #include ".\QueueManager.h"
+
 
 namespace va {
 
@@ -33,7 +35,7 @@ namespace va {
 
 		std::vector<VkPhysicalDevice> getAvailableDevices();
 		
-		void pickPhysicalDevice();
+		void pickPhysicalDevice(const VkSurfaceKHR&);
 #if _DEBUG
 		void createLogicalDevice(std::vector<const char*> requiredExtensions, std::vector<const char*> validationLayers);
 #endif
