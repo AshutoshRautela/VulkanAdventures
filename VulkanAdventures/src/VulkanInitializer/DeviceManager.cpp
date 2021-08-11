@@ -43,7 +43,8 @@ namespace va {
 		for(auto& apd : this->_availablePhysicalDevices) {
 			if(this->isDeviceSuitable(apd) 
 				&& this->_queueManager->checkAvailableQueueFamilies(apd, vkSurfaceKHR)
-				&& this->_swapchainManager->checkSwapchainSupport(apd)
+				&& this->_swapchainManager->checkSwapchainExtensionsSupport(apd)
+				&& this->_swapchainManager->checkSwapchainDetailsSupport(apd, vkSurfaceKHR)
 				) {
 				this->_vkPhysicalDevice = apd;
 				break;

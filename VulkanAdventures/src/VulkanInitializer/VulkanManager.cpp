@@ -51,5 +51,13 @@ namespace va {
 		this->_deviceManager->createLogicalDevice(this->_extensionManager->getInstanceRequiredExtensions());
 #endif
 		this->_queueManager->UpdateQueues(this->_deviceManager->getLogicalDevice());
+		this->_swapchainManager->createSwapChain(
+			vaWindow->GetRawWindow(),
+			this->_deviceManager->getPhysicalDevice(),
+			this->_deviceManager->getLogicalDevice(),
+			this->_instanceManager->getWindowSurface(),
+			this->_queueManager
+		);
+		this->_swapchainManager->createImageViews(this->_deviceManager->getLogicalDevice());
 	}
 }

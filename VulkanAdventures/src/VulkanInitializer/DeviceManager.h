@@ -46,6 +46,8 @@ namespace va {
 		void createLogicalDevice(std::vector<const char*> requiredExtensions);
 #endif
 		bool isDeviceSuitable(const VkPhysicalDevice&);
+
+		inline const VkPhysicalDevice& getPhysicalDevice() const { return this->_vkPhysicalDevice; }
 		inline const VkDevice& getLogicalDevice() const { return this->_vkDevice; };
 	};
 }
