@@ -12,6 +12,7 @@
 
 #include "..\Logger.h"
 #include ".\QueueManager.h"
+#include ".\SwapchainManager.h"
 
 
 namespace va {
@@ -24,9 +25,11 @@ namespace va {
 		std::vector<VkPhysicalDevice> _availablePhysicalDevices;
 
 		const VkInstance& _vkInstance;
+
 		const std::shared_ptr<QueueManager>& _queueManager;
+		const std::shared_ptr<SwapchainManager>& _swapchainManager;
 	public:
-		DeviceManager( const VkInstance& _vkInstance, const std::shared_ptr<QueueManager>& queueManager);
+		DeviceManager( const VkInstance& _vkInstance, const std::shared_ptr<QueueManager>& queueManager, const std::shared_ptr<SwapchainManager>& swapchainManager);
 		~DeviceManager();
 
 		//Deactivating the copy constructor and assignment operator

@@ -170,6 +170,7 @@
     <ClCompile Include="src\VulkanInitializer\VulkanInstanceManager.cpp" />
     <ClCompile Include="src\VulkanInitializer\ValidationManager.cpp" />
     <ClCompile Include="src\VulkanInitializer\VulkanManager.cpp" />
+    <ClCompile Include="src\VulkanInitializer\SwapchainManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VulkanInitializer\QueueManager.h" />
@@ -181,6 +182,7 @@
     <ClInclude Include="src\VulkanInitializer\VulkanInstanceManager.h" />
     <ClInclude Include="src\VulkanInitializer\ValidationManager.h" />
     <ClInclude Include="src\VulkanInitializer\VulkanManager.h" />
+    <ClInclude Include="src\VulkanInitializer\SwapchainManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

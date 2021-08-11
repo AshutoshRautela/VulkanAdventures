@@ -2,9 +2,10 @@
 
 namespace va {
 
-	DeviceManager::DeviceManager(const VkInstance& vkInstance, const std::shared_ptr<QueueManager>& queueManager) : 
+	DeviceManager::DeviceManager(const VkInstance& vkInstance, const std::shared_ptr<QueueManager>& queueManager, const std::shared_ptr<SwapchainManager>& swapchainManager) :
 		_vkInstance(vkInstance),
 		_queueManager(queueManager),
+		_swapchainManager(swapchainManager),
 		_vkPhysicalDevice { VK_NULL_HANDLE }
 	{
 
@@ -40,7 +41,10 @@ namespace va {
 
 		// Check a Device is Suitable
 		for(auto& apd : this->_availablePhysicalDevices) {
-			if(this->isDeviceSuitable(apd) && this->_queueManager->checkAvailableQueueFamilies(apd, vkSurfaceKHR)) {
+			if(this->isDeviceSuitable(apd) 
+				&& this->_queueManager->checkAvailableQueueFamilies(apd, vkSurfaceKHR)
+				&& this->_swapchainManager->checkSwapchainSupport(apd)
+				) {
 				this->_vkPhysicalDevice = apd;
 				break;
 			}
@@ -77,9 +81,10 @@ namespace va {
 		vkDeviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(uniqueQueueFamilies.size());
 		vkDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
-		vkDeviceCreateInfo.enabledExtensionCount = 0;
+		vkDeviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(this->_swapchainManager->requiredDeviceExtensions().size());
+		vkDeviceCreateInfo.ppEnabledExtensionNames = this->_swapchainManager->requiredDeviceExtensions().data();
 
-		vkDeviceCreateInfo.enabledLayerCount = validationLayers.size();
+		vkDeviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 		vkDeviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
 
 		VkResult res = vkCreateDevice(this->_vkPhysicalDevice, &vkDeviceCreateInfo, nullptr, &this->_vkDevice);
@@ -112,8 +117,8 @@ namespace va {
 		vkDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 		vkDeviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(uniqueQueueFamilies.size());
 		vkDeviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-
-		vkDeviceCreateInfo.enabledLayerCount = 0;
+		vkDeviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(this->_swapchainManager->requiredDeviceExtensions().size());
+		vkDeviceCreateInfo.ppEnabledExtensionNames = this->_swapchainManager->requiredDeviceExtensions().data();
 
 		VkResult res = vkCreateDevice(this->_vkPhysicalDevice, &vkDeviceCreateInfo, nullptr, &this->_vkDevice);
 		if (res != VK_SUCCESS) {

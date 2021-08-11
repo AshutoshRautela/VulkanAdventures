@@ -5,6 +5,8 @@
 #include "./ExtensionManager.h"
 #include "./DeviceManager.h"
 #include "./QueueManager.h"
+#include "./SwapchainManager.h"
+
 #include "../ARWindow.hpp";
 
 namespace va {
@@ -23,6 +25,7 @@ namespace va {
 		std::unique_ptr<ValidationManager> _validationManager;
 		std::unique_ptr<DeviceManager> _deviceManager;
 		std::shared_ptr<QueueManager> _queueManager;
+		std::shared_ptr<SwapchainManager> _swapchainManager;
 	};
 }
 

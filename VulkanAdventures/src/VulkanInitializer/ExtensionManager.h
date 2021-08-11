@@ -25,8 +25,8 @@ namespace va {
 		const ExtensionManager& operator=(const ExtensionManager&) = delete;
 
 		std::vector<const char*> getGlfwExtensions();
-		std::vector<const char*> getRequiredExtensions();
-		std::vector<VkExtensionProperties> getAvailableExtensions();
+		std::vector<const char*> getInstanceRequiredExtensions();
+		std::vector<VkExtensionProperties> getInstanceAvailableExtensions();
 		bool isRequiredExtensionsSupported();
 	};
 }

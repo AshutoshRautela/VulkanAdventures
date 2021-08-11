@@ -12,7 +12,7 @@ namespace va {
 		return std::vector<const char*>(glfwExtensions, glfwExtensions + glfwExtensionsCount);;
 	}
 
-	std::vector<const char*> ExtensionManager::getRequiredExtensions() {
+	std::vector<const char*> ExtensionManager::getInstanceRequiredExtensions() {
 		if (this->_requiredExtensions.size() == 0) {
 			this->_requiredExtensions = this->getGlfwExtensions();
 #if _DEBUG
@@ -29,7 +29,7 @@ namespace va {
 		return _requiredExtensions;
 	}
 
-	std::vector<VkExtensionProperties> ExtensionManager::getAvailableExtensions() {
+	std::vector<VkExtensionProperties> ExtensionManager::getInstanceAvailableExtensions() {
 		if (this->_availableExtensions.size() == 0) {
 			uint32_t availableExtensionCount = 0;
 			vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, nullptr);
@@ -49,8 +49,8 @@ namespace va {
 	}
 
 	bool ExtensionManager::isRequiredExtensionsSupported() {
-		this->getRequiredExtensions();
-		this->getAvailableExtensions();
+		this->getInstanceRequiredExtensions();
+		this->getInstanceAvailableExtensions();
 
 		for (auto& rex : this->_requiredExtensions) {
 			bool found = false;
