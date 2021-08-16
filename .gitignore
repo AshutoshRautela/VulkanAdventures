@@ -39,3 +39,5 @@ Imd
 
 *.vs
 
+#Shader Binaries
+*.spv

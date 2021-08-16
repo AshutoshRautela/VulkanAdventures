@@ -57,6 +57,8 @@ namespace va {
 		void createImageViews(const VkDevice&);
 
 		inline const std::vector<const char*>& requiredDeviceExtensions() { return this->_swapchainRequiredExtensions; }
+		inline const VkExtent2D& getExtent() { return this->_swapchainConfiguration.vkExtent2D; }
+		inline const VkSurfaceFormatKHR& getSwapchainSurfaceFormat() { return this->_swapchainConfiguration.vkSurfaceFormat; }
 
 		// Deactivating Copy Constructor and Overlaoded Assignment Operator
 		SwapchainManager(const SwapchainManager&) = delete;

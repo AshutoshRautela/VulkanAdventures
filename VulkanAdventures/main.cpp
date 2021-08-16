@@ -10,29 +10,40 @@
 #include <string>
 #include <stdexcept>
 #include <vector>
+#include <fstream>
 
 #include "src\ARWindow.hpp"
 #include "src\VulkanInitializer\VulkanManager.h"
 #include ".\src\Logger.h"
 
+#include "src\GraphicsPipeline.h"
+
 std::shared_ptr<va::VAWindow> window;
 std::unique_ptr<va::VulkanManager> vManager;
+
+std::unique_ptr<va::GraphicsPipeline> vGraphicsPipeline;
 
 int main(int args1, char** args2) {
 	try {
 		va::Logger::Init();
 		window = std::make_shared<va::VAWindow>(2048, 1024, "My Window");
 		vManager = std::make_unique<va::VulkanManager>(window, "My Application", "My Engine");
+		vGraphicsPipeline = std::make_unique<va::GraphicsPipeline>(vManager->getVkDevice());
+		vGraphicsPipeline->startGraphicsPipelineProcess(
+			"./src/Shaders/vert.spv",
+			"./src/Shaders/frag.spv",
+			vManager->getSwapchainSurfaceFormat(),
+			vManager->getSwapchainExtent()
+		);
+
+		while (!glfwWindowShouldClose(window->GetRawWindow()))
+		{
+			window->PollEvents();
+		}
 	}
 	catch (const std::exception& e) {
 		LOGGER_CRITICAL("Caught an Exception: {0}", e.what());
 		return EXIT_FAILURE;
 	}
-
-	while (!glfwWindowShouldClose(window->GetRawWindow()))
-	{
-		window->PollEvents();
-	}
-	
 	return EXIT_SUCCESS;
 };
