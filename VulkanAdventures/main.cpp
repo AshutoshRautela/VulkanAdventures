@@ -17,11 +17,16 @@
 #include ".\src\Logger.h"
 
 #include "src\GraphicsPipeline.h"
+#include "src\Drawing.h"
 
 std::shared_ptr<va::VAWindow> window;
 std::unique_ptr<va::VulkanManager> vManager;
 
 std::unique_ptr<va::GraphicsPipeline> vGraphicsPipeline;
+std::unique_ptr<va::Drawing> vDrawing;
+
+//va::GraphicsPipeline* vGraphicsPipeline;
+va::Drawing* drawing;
 
 int main(int args1, char** args2) {
 	try {
@@ -35,11 +40,19 @@ int main(int args1, char** args2) {
 			vManager->getSwapchainSurfaceFormat(),
 			vManager->getSwapchainExtent()
 		);
+		vDrawing = std::make_unique<va::Drawing>(vGraphicsPipeline, vManager);
+		vDrawing->createFrameBuffers();
+		vDrawing->createCommandPool();
+		vDrawing->prepareCommandBuffers();
+		vDrawing->createSyncObjects();
 
 		while (!glfwWindowShouldClose(window->GetRawWindow()))
 		{
 			window->PollEvents();
+			vDrawing->drawFrame();
 		}
+
+		vkDeviceWaitIdle(vManager->getVkDevice());
 	}
 	catch (const std::exception& e) {
 		LOGGER_CRITICAL("Caught an Exception: {0}", e.what());

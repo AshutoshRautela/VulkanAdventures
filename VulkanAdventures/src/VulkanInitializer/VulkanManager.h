@@ -26,6 +26,12 @@ namespace va {
 		inline const VkDevice& getVkDevice() const { return this->_deviceManager->getLogicalDevice(); }
 		inline const VkExtent2D& getSwapchainExtent() const { return this->_swapchainManager->getExtent(); }
 		inline const VkSurfaceFormatKHR getSwapchainSurfaceFormat() const { return this->_swapchainManager->getSwapchainSurfaceFormat(); }
+		inline const QueueFamilyIndices& getQueueFamilyIndices() const { return this->_queueManager->getQueueFamilyIndices(); }
+		inline const std::vector<VkImage>& getSwapchainImages() const { return this->_swapchainManager->getSwapchainImages(); }
+		inline const std::vector<VkImageView>& getSwapchainImageViews() const { return this->_swapchainManager->getSwapchainImageViews(); }
+		inline const VkSwapchainKHR& getSwapChain() const { return this->_swapchainManager->getSwapchain(); }
+		inline const VkQueue& getGraphicsQueue() const { return this->_queueManager->getGraphicsQueue(); }
+		inline const VkQueue& getPresentQueue() const { return this->_queueManager->getPresentQueue(); }
 
 	private:
 		std::unique_ptr<VulkanInstanceManager> _instanceManager;

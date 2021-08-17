@@ -32,6 +32,9 @@ namespace va {
 		inline const QueueFamilyIndices& getQueueFamilyIndices() { return this->_queueFamilyIndices;  }
 		bool checkAvailableQueueFamilies(const VkPhysicalDevice&, const VkSurfaceKHR&);
 
+		inline const VkQueue& getGraphicsQueue() const { return this->_graphicsQueue; }
+		inline const VkQueue& getPresentQueue() const { return this->_presentQueue; }
+
 		void UpdateQueues(const VkDevice&);
 	};
 

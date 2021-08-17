@@ -123,19 +123,20 @@ namespace va {
 		if (vkCreateSwapchainKHR(vkLogicalDevice, &vkSwapchainCreateInfoKHR, nullptr, &this->_vkSwapChainKHR) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create Swap Chain");
 		}
-#if _DEBUG || _RELEASE 
-		LOGGER_INFO("Successfully created Swap Chain");
-#endif
 
 		uint32_t swapchainImageCount = 0;
 		vkGetSwapchainImagesKHR(vkLogicalDevice, this->_vkSwapChainKHR, &swapchainImageCount, nullptr);
 
 		this->_swapChainImages.resize(swapchainImageCount);
 		vkGetSwapchainImagesKHR(vkLogicalDevice, this->_vkSwapChainKHR, &swapchainImageCount, this->_swapChainImages.data());
+
+#if _DEBUG || _RELEASE 
+		LOGGER_INFO("Successfully created Swap Chain {}", swapchainImageCount);
+#endif
 	}
 
 	void SwapchainManager::createImageViews(const VkDevice& vkLogicalDevice) {
-		this->_swapChainImageViews.resize(this->_swapChainImages.size());
+		//this->_swapChainImageViews.resize(1);
 		for (auto& sci : this->_swapChainImages) {
 			VkImageViewCreateInfo vkImageViewCreateInfo{};
 			vkImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -159,7 +160,7 @@ namespace va {
 			this->_swapChainImageViews.push_back(imageView);
 		}
 #if _DEBUG
-		LOGGER_INFO("Successfully created Image Views");
+		LOGGER_INFO("Successfully created Image Views {0} {1}", this->_swapChainImages.size(), this->_swapChainImageViews.size());
 #endif
 	}
 

@@ -160,6 +160,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Drawing.cpp" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />
     <ClCompile Include="src\VulkanInitializer\QueueManager.cpp" />
     <ClCompile Include="src\VulkanInitializer\DeviceManager.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="src\VulkanInitializer\SwapchainManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Drawing.h" />
     <ClInclude Include="src\GraphicsPipeline.h" />
     <ClInclude Include="src\VulkanInitializer\QueueManager.h" />
     <ClInclude Include="src\VulkanInitializer\DeviceManager.h" />

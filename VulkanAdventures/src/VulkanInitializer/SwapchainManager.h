@@ -59,6 +59,9 @@ namespace va {
 		inline const std::vector<const char*>& requiredDeviceExtensions() { return this->_swapchainRequiredExtensions; }
 		inline const VkExtent2D& getExtent() { return this->_swapchainConfiguration.vkExtent2D; }
 		inline const VkSurfaceFormatKHR& getSwapchainSurfaceFormat() { return this->_swapchainConfiguration.vkSurfaceFormat; }
+		inline const std::vector<VkImage>& getSwapchainImages() const { return this->_swapChainImages; }
+		inline const std::vector<VkImageView>& getSwapchainImageViews() const { return this->_swapChainImageViews; }
+		inline const VkSwapchainKHR& getSwapchain() const { return this->_vkSwapChainKHR; }
 
 		// Deactivating Copy Constructor and Overlaoded Assignment Operator
 		SwapchainManager(const SwapchainManager&) = delete;

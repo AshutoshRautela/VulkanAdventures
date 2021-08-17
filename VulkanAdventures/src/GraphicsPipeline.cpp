@@ -37,6 +37,14 @@ namespace va {
 
 	void GraphicsPipeline::createRenderPass(const VkSurfaceFormatKHR& swapChainSurfaceFormat) {
 
+		VkSubpassDependency vkSubpassDependency{};
+		vkSubpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		vkSubpassDependency.dstSubpass = 0;
+		vkSubpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		vkSubpassDependency.srcAccessMask = 0;
+		vkSubpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		vkSubpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 		VkAttachmentDescription vkAttachmentDescription{};
 		vkAttachmentDescription.format = swapChainSurfaceFormat.format;
 		vkAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -62,6 +70,8 @@ namespace va {
 		vkRenderPassCreateInfo.pAttachments = &vkAttachmentDescription;
 		vkRenderPassCreateInfo.subpassCount = 1;
 		vkRenderPassCreateInfo.pSubpasses = &vkSubpassDescription;
+		vkRenderPassCreateInfo.dependencyCount = 1;
+		vkRenderPassCreateInfo.pDependencies = &vkSubpassDependency;
 
 		if (vkCreateRenderPass(this->_vkDevice, &vkRenderPassCreateInfo, nullptr, &this->_vkRenderPass) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create Render Pass");
@@ -287,12 +297,18 @@ namespace va {
 	void GraphicsPipeline::clearShaderModules() {
 		this->_fSource.clear();
 		this->_vSource.clear();
-		vkDestroyShaderModule(this->_vkDevice, this->_vShaderModule, nullptr);
-		vkDestroyShaderModule(this->_vkDevice, this->_fShaderModule, nullptr);
+		if (this->_vShaderModule != VK_NULL_HANDLE) {
+			vkDestroyShaderModule(this->_vkDevice, this->_vShaderModule, nullptr);
+			this->_vShaderModule = VK_NULL_HANDLE;
+		}
+		if (this->_fShaderModule != VK_NULL_HANDLE) {
+			vkDestroyShaderModule(this->_vkDevice, this->_fShaderModule, nullptr);
+			this->_fShaderModule = VK_NULL_HANDLE;
+		}
 	}
 
 	GraphicsPipeline::~GraphicsPipeline() {
-		this->clearShaderModules();
+		//this->clearShaderModules();
 		vkDestroyPipeline(this->_vkDevice, this->_vkPipeline, nullptr);
 		vkDestroyPipelineLayout(this->_vkDevice, this->_vkPipelineLayout, nullptr);
 		vkDestroyRenderPass(this->_vkDevice, this->_vkRenderPass, nullptr);
