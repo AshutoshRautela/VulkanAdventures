@@ -18,10 +18,14 @@ namespace va {
 	class VulkanManager
 	{
 	public:
-		VulkanManager(const std::shared_ptr<VAWindow>& ,std::string, std::string);
+		VulkanManager(const std::unique_ptr<VAWindow>& ,std::string, std::string);
 
 		VulkanManager(const VulkanManager&) = delete;
 		const VulkanManager& operator=(const VulkanManager&) = delete;
+
+		// Recreate Swap Chain
+		void clearSwapChainAndImageViews();
+		void createSwapChainAndImageViews();
 
 		inline const VkDevice& getVkDevice() const { return this->_deviceManager->getLogicalDevice(); }
 		inline const VkExtent2D& getSwapchainExtent() const { return this->_swapchainManager->getExtent(); }
@@ -35,6 +39,7 @@ namespace va {
 
 	private:
 		std::unique_ptr<VulkanInstanceManager> _instanceManager;
+		const std::unique_ptr<VAWindow>& _vaWindow;
 
 		std::unique_ptr<ExtensionManager> _extensionManager;
 		std::unique_ptr<ValidationManager> _validationManager;

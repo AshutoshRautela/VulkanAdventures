@@ -83,6 +83,8 @@ namespace va {
 	}
 
 	void GraphicsPipeline::readShaders(const std::string& vShaderPath, const std::string& fShaderPath) {
+		this->_vSource.clear();
+		this->_fSource.clear();
 
 		// Reading Vertex Source
 		std::ifstream fStream(vShaderPath, std::ios::ate | std::ios::binary);
@@ -307,10 +309,22 @@ namespace va {
 		}
 	}
 
+	void GraphicsPipeline::clearGraphicsPipeline() {
+		vkDestroyPipeline(this->_vkDevice, this->_vkPipeline, nullptr);
+	}
+
+	void GraphicsPipeline::clearGraphicsPipelineLayout() {
+		vkDestroyPipelineLayout(this->_vkDevice, this->_vkPipelineLayout, nullptr);
+	}
+
+	void GraphicsPipeline::clearRenderPass() {
+		vkDestroyRenderPass(this->_vkDevice, this->_vkRenderPass, nullptr);
+	}
+	
 	GraphicsPipeline::~GraphicsPipeline() {
 		//this->clearShaderModules();
-		vkDestroyPipeline(this->_vkDevice, this->_vkPipeline, nullptr);
-		vkDestroyPipelineLayout(this->_vkDevice, this->_vkPipelineLayout, nullptr);
-		vkDestroyRenderPass(this->_vkDevice, this->_vkRenderPass, nullptr);
+		this->clearGraphicsPipeline();
+		this->clearGraphicsPipelineLayout();
+		this->clearRenderPass();
 	}
 }

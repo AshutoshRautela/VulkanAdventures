@@ -2,9 +2,14 @@
 
 namespace va {
 
-	Drawing::Drawing(const std::unique_ptr<GraphicsPipeline>& graphicsPipeline, const std::unique_ptr<VulkanManager>& vulkanManager) : _vkDevice(vulkanManager->getVkDevice()), _graphicsPipeline(graphicsPipeline), _vulkanManager(vulkanManager) {}
+	Drawing::Drawing(const std::unique_ptr<GraphicsPipeline>& graphicsPipeline, const std::unique_ptr<VulkanManager>& vulkanManager, const std::unique_ptr<VAWindow>& window) : _vkDevice(vulkanManager->getVkDevice()), _graphicsPipeline(graphicsPipeline), _vulkanManager(vulkanManager), _vaWindow(window) {
+		this->_vaWindow->onWindowResize([this](uint32_t width, uint32_t height)-> void {
+			this->_frameBufferResized = true;
+		});
+	}
 
 	void Drawing::createFrameBuffers() {
+		this->_swapchainframebuffers.clear();
 		this->_swapchainframebuffers.resize(this->_vulkanManager->getSwapchainImageViews().size());
 
 		size_t i = 0;
@@ -56,6 +61,7 @@ namespace va {
 	}
 
 	void Drawing::createCommandBuffers() {
+		this->_vkCommandBuffers.clear();
 		this->_vkCommandBuffers.resize(this->_swapchainframebuffers.size());
 
 		VkCommandBufferAllocateInfo vkCommandBufferAllocateInfo{};
@@ -176,12 +182,26 @@ namespace va {
 
 	}
 
+	void Drawing::prapareFrameBuffersAndCommandPool() {
+		this->createFrameBuffers();
+		this->createCommandPool();
+		this->prepareCommandBuffers();
+		this->createSyncObjects();
+	}
+
 	void Drawing::drawFrame() {
 		vkWaitForFences(this->_vkDevice, 1, &this->_inFlightFences[this->_currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(this->_vkDevice, 1, &this->_inFlightFences[this->_currentFrame]);
 
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(this->_vkDevice, this->_vulkanManager->getSwapChain(), INT32_MAX, this->_imageAvailableSemaphores[this->_currentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(this->_vkDevice, this->_vulkanManager->getSwapChain(), INT32_MAX, this->_imageAvailableSemaphores[this->_currentFrame], VK_NULL_HANDLE, &imageIndex);
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			LOGGER_CRITICAL("OUT of Data KHR Error");
+			return;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			throw std::runtime_error("Failed to acquire Swap Chain");
+		}
 
 		if (this->_imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
 			vkWaitForFences(this->_vkDevice, 1, &this->_imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
@@ -218,10 +238,50 @@ namespace va {
 		vkPresentInfoKHR.pImageIndices = &imageIndex;
 		vkPresentInfoKHR.pResults = nullptr;
 
-		vkQueuePresentKHR(this->_vulkanManager->getPresentQueue(), &vkPresentInfoKHR);
-		vkQueueWaitIdle(this->_vulkanManager->getPresentQueue());
+		result = vkQueuePresentKHR(this->_vulkanManager->getPresentQueue(), &vkPresentInfoKHR);
 
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || this->_frameBufferResized) {
+			vkDeviceWaitIdle(this->_vulkanManager->getVkDevice());
+
+			LOGGER_WARN("Failed to Present!! Recreating swap chain");
+
+			this->clearFrameBuffers();
+			this->clearCommandBuffers();
+			this->_graphicsPipeline->clearGraphicsPipeline();
+			this->_graphicsPipeline->clearGraphicsPipelineLayout();
+			this->_graphicsPipeline->clearRenderPass();
+			this->_vulkanManager->clearSwapChainAndImageViews();
+
+			this->_vulkanManager->createSwapChainAndImageViews();
+			this->_graphicsPipeline->startGraphicsPipelineProcess(
+				"./src/Shaders/vert.spv",
+				"./src/Shaders/frag.spv",
+				this->_vulkanManager->getSwapchainSurfaceFormat(),
+				this->_vulkanManager->getSwapchainExtent()
+			);
+			this->createFrameBuffers();
+			this->prepareCommandBuffers();
+
+			LOGGER_INFO("Recreated Swap Chain");
+
+			this->_frameBufferResized = false;
+		}
+		else if (result != VK_SUCCESS) {
+			throw std::runtime_error("Failed to present swap chain image");
+		}
+
+		vkQueueWaitIdle(this->_vulkanManager->getPresentQueue());
 		this->_currentFrame = (this->_currentFrame + 1) % this->MAX_FRAMES_IN_FLIGHT;
+	}
+
+	void Drawing::clearFrameBuffers() {
+		for (VkFramebuffer fb : this->_swapchainframebuffers) {
+			vkDestroyFramebuffer(this->_vkDevice, fb, nullptr);
+		}
+	}
+
+	void Drawing::clearCommandBuffers() {
+		vkFreeCommandBuffers(this->_vulkanManager->getVkDevice(), this->_vkCommandPool, static_cast<uint32_t>(this->_vkCommandBuffers.size()), this->_vkCommandBuffers.data());
 	}
 
 	Drawing::~Drawing() {
@@ -231,9 +291,9 @@ namespace va {
 			vkDestroyFence(this->_vkDevice, this->_inFlightFences[i], nullptr);
 		}
 
+		this->clearFrameBuffers();
+		this->clearCommandBuffers();
+
 		vkDestroyCommandPool(this->_vkDevice, this->_vkCommandPool, nullptr);
-		for (VkFramebuffer fb : this->_swapchainframebuffers) {
-			vkDestroyFramebuffer(this->_vkDevice, fb, nullptr);
-		}
 	}
 }

@@ -55,6 +55,7 @@ namespace va {
 
 		void createSwapChain(GLFWwindow*, const VkPhysicalDevice& , const VkDevice&, const VkSurfaceKHR&, const std::shared_ptr<QueueManager>&);
 		void createImageViews(const VkDevice&);
+		void cleanSwapChain();
 
 		inline const std::vector<const char*>& requiredDeviceExtensions() { return this->_swapchainRequiredExtensions; }
 		inline const VkExtent2D& getExtent() { return this->_swapchainConfiguration.vkExtent2D; }

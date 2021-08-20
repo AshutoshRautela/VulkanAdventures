@@ -27,6 +27,10 @@ namespace va {
 
 		void startGraphicsPipelineProcess(const std::string&, const std::string&, const VkSurfaceFormatKHR&, const VkExtent2D&);
 
+		void clearGraphicsPipeline();
+		void clearGraphicsPipelineLayout();
+		void clearRenderPass();
+
 		inline const VkRenderPass& getRenderPass() const { return this->_vkRenderPass; }
 		inline const VkPipeline& getGraphicsPipeline() const { return this->_vkPipeline; }
 

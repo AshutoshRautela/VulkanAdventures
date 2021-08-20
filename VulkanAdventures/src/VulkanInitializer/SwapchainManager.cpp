@@ -77,8 +77,11 @@ namespace va {
 	}
 
 	void SwapchainManager::createSwapChain(GLFWwindow* glfwWindow, const VkPhysicalDevice& vkPhysicalDevice,const VkDevice& vkLogicalDevice, const VkSurfaceKHR& vkSurfaceKHR, const std::shared_ptr<QueueManager>& queueManager) {
-		this->querySwapchainSupport(vkPhysicalDevice, vkSurfaceKHR);
+		this->_swapchainConfiguration = {};
+		this->_swapchainSupportDetails = {};
+		this->_swapChainImages.clear();
 
+		this->querySwapchainSupport(vkPhysicalDevice, vkSurfaceKHR);
 		this->_vkLogicalDevice = vkLogicalDevice;
 
 		this->_swapchainConfiguration.vkSurfaceFormat = this->chooseSurfaceFormat();
@@ -136,7 +139,7 @@ namespace va {
 	}
 
 	void SwapchainManager::createImageViews(const VkDevice& vkLogicalDevice) {
-		//this->_swapChainImageViews.resize(1);
+		this->_swapChainImageViews.clear();
 		for (auto& sci : this->_swapChainImages) {
 			VkImageViewCreateInfo vkImageViewCreateInfo{};
 			vkImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -188,12 +191,11 @@ namespace va {
 		}
 		int width; int height;
 		glfwGetFramebufferSize(window, &width, &height);
-
+		LOGGER_INFO("FrameBuffer Size: {0} {1}", width, height);
 		VkExtent2D actualExtent = {
 			static_cast<uint32_t>(width),
 			static_cast<uint32_t>(height)
 		};
-
 		actualExtent.width = std::clamp(
 			actualExtent.width,
 			this->_swapchainSupportDetails.surfaceCapabilites.minImageExtent.width,
@@ -204,14 +206,23 @@ namespace va {
 			this->_swapchainSupportDetails.surfaceCapabilites.minImageExtent.height,
 			this->_swapchainSupportDetails.surfaceCapabilites.maxImageExtent.height
 		);
-
+		LOGGER_INFO("Choosing Swapchain");
+		LOGGER_INFO("Min Extents: {0} {1}", this->_swapchainSupportDetails.surfaceCapabilites.minImageExtent.width, this->_swapchainSupportDetails.surfaceCapabilites.minImageExtent.height);
+		LOGGER_INFO("Max Extents: {0} {1}", this->_swapchainSupportDetails.surfaceCapabilites.maxImageExtent.width, this->_swapchainSupportDetails.surfaceCapabilites.maxImageExtent.height);
 		return actualExtent;
 	}
 
-	SwapchainManager::~SwapchainManager() {
-		vkDestroySwapchainKHR(this->_vkLogicalDevice, this->_vkSwapChainKHR, nullptr);
-		for (auto& siv : this->_swapChainImageViews) {
-			vkDestroyImageView(this->_vkLogicalDevice, siv, nullptr);
+	void SwapchainManager::cleanSwapChain() {
+		if (this->_vkSwapChainKHR != VK_NULL_HANDLE) {
+			for (auto& siv : this->_swapChainImageViews) {
+				vkDestroyImageView(this->_vkLogicalDevice, siv, nullptr);
+			}
+			vkDestroySwapchainKHR(this->_vkLogicalDevice, this->_vkSwapChainKHR, nullptr);
+			this->_vkSwapChainKHR = VK_NULL_HANDLE;
 		}
+	}
+
+	SwapchainManager::~SwapchainManager() {
+		this->cleanSwapChain();
 	}
 }

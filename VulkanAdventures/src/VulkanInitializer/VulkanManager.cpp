@@ -1,7 +1,7 @@
 #include "VulkanManager.h"
 
 namespace va {
-	VulkanManager::VulkanManager(const std::shared_ptr<VAWindow>& vaWindow, std::string appName, std::string engineName) {
+	VulkanManager::VulkanManager(const std::unique_ptr<VAWindow>& vaWindow, std::string appName, std::string engineName): _vaWindow(vaWindow) {
 		this->_extensionManager = std::make_unique<ExtensionManager>();
 		auto extensionSupport = this->_extensionManager->isRequiredExtensionsSupported();
 		if (!extensionSupport) {
@@ -51,13 +51,24 @@ namespace va {
 		this->_deviceManager->createLogicalDevice(this->_extensionManager->getInstanceRequiredExtensions());
 #endif
 		this->_queueManager->UpdateQueues(this->_deviceManager->getLogicalDevice());
+		this->createSwapChainAndImageViews();
+	}
+
+	void VulkanManager::createSwapChainAndImageViews() {
 		this->_swapchainManager->createSwapChain(
-			vaWindow->GetRawWindow(),
+			this->_vaWindow->GetRawWindow(),
 			this->_deviceManager->getPhysicalDevice(),
 			this->_deviceManager->getLogicalDevice(),
 			this->_instanceManager->getWindowSurface(),
 			this->_queueManager
 		);
 		this->_swapchainManager->createImageViews(this->_deviceManager->getLogicalDevice());
+	}
+
+	void VulkanManager::clearSwapChainAndImageViews() {
+		this->_swapchainManager->cleanSwapChain();
+#if _DEBUG
+		LOGGER_INFO("Cleared SwapChain as Image View");
+#endif // _DEBUG
 	}
 }

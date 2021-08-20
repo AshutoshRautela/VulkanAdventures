@@ -19,7 +19,7 @@
 #include "src\GraphicsPipeline.h"
 #include "src\Drawing.h"
 
-std::shared_ptr<va::VAWindow> window;
+std::unique_ptr<va::VAWindow> window;
 std::unique_ptr<va::VulkanManager> vManager;
 
 std::unique_ptr<va::GraphicsPipeline> vGraphicsPipeline;
@@ -31,7 +31,7 @@ va::Drawing* drawing;
 int main(int args1, char** args2) {
 	try {
 		va::Logger::Init();
-		window = std::make_shared<va::VAWindow>(2048, 1024, "My Window");
+		window = std::make_unique<va::VAWindow>(2048, 1024, "My Window");
 		vManager = std::make_unique<va::VulkanManager>(window, "My Application", "My Engine");
 		vGraphicsPipeline = std::make_unique<va::GraphicsPipeline>(vManager->getVkDevice());
 		vGraphicsPipeline->startGraphicsPipelineProcess(
@@ -40,12 +40,9 @@ int main(int args1, char** args2) {
 			vManager->getSwapchainSurfaceFormat(),
 			vManager->getSwapchainExtent()
 		);
-		vDrawing = std::make_unique<va::Drawing>(vGraphicsPipeline, vManager);
-		vDrawing->createFrameBuffers();
-		vDrawing->createCommandPool();
-		vDrawing->prepareCommandBuffers();
-		vDrawing->createSyncObjects();
-
+		vDrawing = std::make_unique<va::Drawing>(vGraphicsPipeline, vManager, window);
+		vDrawing->prapareFrameBuffersAndCommandPool();
+		
 		while (!glfwWindowShouldClose(window->GetRawWindow()))
 		{
 			window->PollEvents();

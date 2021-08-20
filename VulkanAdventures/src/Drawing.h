@@ -20,6 +20,7 @@ namespace va {
 		std::vector<VkFramebuffer> _swapchainframebuffers;
 		const std::unique_ptr<GraphicsPipeline>& _graphicsPipeline;
 		const std::unique_ptr<VulkanManager>& _vulkanManager;
+		const std::unique_ptr<VAWindow>& _vaWindow;
 
 		const VkDevice& _vkDevice;
 
@@ -38,19 +39,26 @@ namespace va {
 		void endRenderPass();
 		void stopCommandBufferRecording();
 
+		void createFrameBuffers();
+		void createCommandPool();
+		void prepareCommandBuffers();
+		void createSyncObjects();
+
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 		size_t _currentFrame = 0;
 
 	public:
-		Drawing(const std::unique_ptr<GraphicsPipeline>&, const std::unique_ptr<VulkanManager>&);
+		Drawing(const std::unique_ptr<GraphicsPipeline>&, const std::unique_ptr<VulkanManager>&, const std::unique_ptr<VAWindow>&);
 		~Drawing();
 
-		void createFrameBuffers();
-		void createCommandPool();
-		void prepareCommandBuffers();
+		void prapareFrameBuffersAndCommandPool();
+		bool _frameBufferResized = false;
 
-		void createSyncObjects();
 		void drawFrame();
+
+
+		void clearFrameBuffers();
+		void clearCommandBuffers();
 
 	};
 }
