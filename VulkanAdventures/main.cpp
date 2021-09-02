@@ -18,15 +18,27 @@
 
 #include "src\GraphicsPipeline.h"
 #include "src\Drawing.h"
+#include "src\Renderer.h"
+#include "src\Mesh.h"
+#include "src\Renderer.h"
 
 std::unique_ptr<va::VAWindow> window;
 std::unique_ptr<va::VulkanManager> vManager;
 
 std::unique_ptr<va::GraphicsPipeline> vGraphicsPipeline;
+std::unique_ptr<va::Renderer> renderer;
 std::unique_ptr<va::Drawing> vDrawing;
+
 
 //va::GraphicsPipeline* vGraphicsPipeline;
 va::Drawing* drawing;
+std::unique_ptr<va::Mesh> mesh;
+
+std::vector<va::Vertex> vertices = {
+	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+};
 
 int main(int args1, char** args2) {
 	try {
@@ -34,14 +46,16 @@ int main(int args1, char** args2) {
 		window = std::make_unique<va::VAWindow>(2048, 1024, "My Window");
 		vManager = std::make_unique<va::VulkanManager>(window, "My Application", "My Engine");
 		vGraphicsPipeline = std::make_unique<va::GraphicsPipeline>(vManager->getVkDevice());
+		renderer = std::make_unique<va::Renderer>(vManager->getPhysicalDevice(), vManager->getVkDevice(), vertices);
 		vGraphicsPipeline->startGraphicsPipelineProcess(
 			"./src/Shaders/vert.spv",
 			"./src/Shaders/frag.spv",
 			vManager->getSwapchainSurfaceFormat(),
 			vManager->getSwapchainExtent()
 		);
-		vDrawing = std::make_unique<va::Drawing>(vGraphicsPipeline, vManager, window);
+		vDrawing = std::make_unique<va::Drawing>(renderer, vGraphicsPipeline, vManager, window);
 		vDrawing->prapareFrameBuffersAndCommandPool();
+
 		
 		while (!glfwWindowShouldClose(window->GetRawWindow()))
 		{

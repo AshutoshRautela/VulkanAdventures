@@ -2,7 +2,7 @@
 
 namespace va {
 
-	Drawing::Drawing(const std::unique_ptr<GraphicsPipeline>& graphicsPipeline, const std::unique_ptr<VulkanManager>& vulkanManager, const std::unique_ptr<VAWindow>& window) : _vkDevice(vulkanManager->getVkDevice()), _graphicsPipeline(graphicsPipeline), _vulkanManager(vulkanManager), _vaWindow(window) {
+	Drawing::Drawing(const std::unique_ptr<Renderer>& renderer, const std::unique_ptr<GraphicsPipeline>& graphicsPipeline, const std::unique_ptr<VulkanManager>& vulkanManager, const std::unique_ptr<VAWindow>& window) : _renderer(renderer), _vkDevice(vulkanManager->getVkDevice()), _graphicsPipeline(graphicsPipeline), _vulkanManager(vulkanManager), _vaWindow(window) {
 		this->_vaWindow->onWindowResize([this](uint32_t width, uint32_t height)-> void {
 			this->_frameBufferResized = true;
 		});
@@ -120,6 +120,7 @@ namespace va {
 	void Drawing::draw() {
 		for (const VkCommandBuffer& cb : this->_vkCommandBuffers) {
 			vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, this->_graphicsPipeline->getGraphicsPipeline());
+			this->_renderer->render(cb) ;
 			vkCmdDraw(cb, 3, 1, 0, 0);
 		}
 

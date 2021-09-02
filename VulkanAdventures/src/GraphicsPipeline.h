@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Logger.h"
+#include "Vertex.h"
 
 namespace va {
 	class GraphicsPipeline
@@ -46,6 +47,9 @@ namespace va {
 		VkPipelineShaderStageCreateInfo _shaderStages[2];
 		VkPipelineVertexInputStateCreateInfo _vertexInputState;	
 		VkPipelineInputAssemblyStateCreateInfo _inputAssemblyState;
+
+		VkVertexInputBindingDescription _bindingDescription;
+		std::array<VkVertexInputAttributeDescription, 2> _attributeDescription;
 
 		VkRect2D _scissor;
 		VkViewport _vkViewport;

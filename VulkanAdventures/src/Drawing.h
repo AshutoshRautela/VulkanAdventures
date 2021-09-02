@@ -10,6 +10,7 @@
 
 #include "Logger.h"
 #include "GraphicsPipeline.h"
+#include "Renderer.h"
 #include "VulkanInitializer\VulkanManager.h"
 
 namespace va {
@@ -21,6 +22,7 @@ namespace va {
 		const std::unique_ptr<GraphicsPipeline>& _graphicsPipeline;
 		const std::unique_ptr<VulkanManager>& _vulkanManager;
 		const std::unique_ptr<VAWindow>& _vaWindow;
+		const std::unique_ptr<Renderer>& _renderer;
 
 		const VkDevice& _vkDevice;
 
@@ -48,7 +50,7 @@ namespace va {
 		size_t _currentFrame = 0;
 
 	public:
-		Drawing(const std::unique_ptr<GraphicsPipeline>&, const std::unique_ptr<VulkanManager>&, const std::unique_ptr<VAWindow>&);
+		Drawing(const std::unique_ptr<Renderer>&, const std::unique_ptr<GraphicsPipeline>&, const std::unique_ptr<VulkanManager>&, const std::unique_ptr<VAWindow>&);
 		~Drawing();
 
 		void prapareFrameBuffersAndCommandPool();

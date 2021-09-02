@@ -162,6 +162,8 @@
   <ItemGroup>
     <ClCompile Include="src\Drawing.cpp" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\VulkanInitializer\QueueManager.cpp" />
     <ClCompile Include="src\VulkanInitializer\DeviceManager.cpp" />
     <ClCompile Include="src\Logger.cpp" />
@@ -177,6 +179,9 @@
   <ItemGroup>
     <ClInclude Include="src\Drawing.h" />
     <ClInclude Include="src\GraphicsPipeline.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Vertex.h" />
+    <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\VulkanInitializer\QueueManager.h" />
     <ClInclude Include="src\VulkanInitializer\DeviceManager.h" />
     <ClInclude Include="src\Logger.h" />

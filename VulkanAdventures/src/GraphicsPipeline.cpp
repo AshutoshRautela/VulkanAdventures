@@ -162,11 +162,15 @@ namespace va {
 	}
 
 	void GraphicsPipeline::initVertexInputPipelineState() {
+		this->_bindingDescription = Vertex::getBindingDescription();
+		this->_attributeDescription = Vertex::getAttributeDescription();
+
 		this->_vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		this->_vertexInputState.vertexBindingDescriptionCount = 0;
-		this->_vertexInputState.pVertexBindingDescriptions = nullptr;
-		this->_vertexInputState.vertexAttributeDescriptionCount = 0;
-		this->_vertexInputState.pVertexAttributeDescriptions = nullptr;
+
+		this->_vertexInputState.vertexBindingDescriptionCount = 1;
+		this->_vertexInputState.pVertexBindingDescriptions = &this->_bindingDescription;
+		this->_vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(this->_attributeDescription.size());
+		this->_vertexInputState.pVertexAttributeDescriptions = this->_attributeDescription.data();
 	}
 
 	void GraphicsPipeline::initInputAssemblyPipelineState() {
@@ -259,13 +263,15 @@ namespace va {
 		vkPipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
 		if (vkCreatePipelineLayout(this->_vkDevice, &vkPipelineLayoutCreateInfo, nullptr, &this->_vkPipelineLayout) != VK_SUCCESS) {
+#if DEBUG
+			LOGGER_ERROR("Failed to create Graphics Pipeline");
+#endif // DEBUG
 			throw std::runtime_error("Failed to create Pipeline Layout");
 		}
 
 #if _DEBUG
 		LOGGER_INFO("Successfully created Pipeline Layout");
 #endif // _DEBUG
-
 	}
 
 	void GraphicsPipeline::createGraphicsPipeline() {

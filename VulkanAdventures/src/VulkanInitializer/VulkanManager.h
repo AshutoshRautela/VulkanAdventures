@@ -27,6 +27,7 @@ namespace va {
 		void clearSwapChainAndImageViews();
 		void createSwapChainAndImageViews();
 
+		inline const VkPhysicalDevice& getPhysicalDevice() const { return this->_deviceManager->getPhysicalDevice();};
 		inline const VkDevice& getVkDevice() const { return this->_deviceManager->getLogicalDevice(); }
 		inline const VkExtent2D& getSwapchainExtent() const { return this->_swapchainManager->getExtent(); }
 		inline const VkSurfaceFormatKHR getSwapchainSurfaceFormat() const { return this->_swapchainManager->getSwapchainSurfaceFormat(); }
