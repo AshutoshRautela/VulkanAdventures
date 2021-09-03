@@ -2,8 +2,8 @@
 
 namespace va {
 
-	Renderer::Renderer(const VkPhysicalDevice& vkPhysicalDevice, const VkDevice& vkDevice, std::vector<Vertex> vertices):_vkPhysicalDevice(vkPhysicalDevice), _vkDevice(vkDevice) {
-		this->_mesh = std::make_unique<Mesh>(vertices);
+	Renderer::Renderer(const VkPhysicalDevice& vkPhysicalDevice, const VkDevice& vkDevice, Mesh&& mesh):_vkPhysicalDevice(vkPhysicalDevice), _vkDevice(vkDevice) {
+		this->_mesh = std::make_unique<Mesh>(mesh);
 	}
 
 	void Renderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -44,19 +44,22 @@ namespace va {
 
 	void Renderer::createVertexBuffers(const VkCommandPool& commandPool, const VkQueue& graphicsQueue) {
 		VkDeviceSize bufferSize = sizeof(this->_mesh->getVertices()[0]) * this->_mesh->getVertices().size();
+
+		VkBuffer stagingBuffer; // Staging Buffer
+		VkDeviceMemory stagingBufferMemory; // Staging Buffer Memory
 		
 		this->createBuffer(bufferSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			this->_stagingBuffer,
-			this->_stagingBufferMemory
+			stagingBuffer,
+			stagingBufferMemory
 		);
 
 		// Copy data to Staging Buffer
 		void* data;
-		vkMapMemory(this->_vkDevice, this->_stagingBufferMemory, 0, this->_vkBufferCreateInfo.size, 0, &data);
+		vkMapMemory(this->_vkDevice, stagingBufferMemory, 0, this->_vkBufferCreateInfo.size, 0, &data);
 		memcpy(data, this->_mesh->getVertices().data(), (size_t)this->_vkBufferCreateInfo.size);
-		vkUnmapMemory(this->_vkDevice, this->_stagingBufferMemory);
+		vkUnmapMemory(this->_vkDevice, stagingBufferMemory);
 #if DEBUG
 		LOGGER_INFO("Copied data to the Staging Buffer");
 #endif // DEBUG
@@ -68,14 +71,42 @@ namespace va {
 			this->_vertexBufferMemory
 		);
 
-		this->copyBuffer(commandPool, graphicsQueue, this->_stagingBuffer, this->_vertexBuffer, bufferSize);
+		this->copyBuffer(commandPool, graphicsQueue, stagingBuffer, this->_vertexBuffer, bufferSize);
 #if DEBUG
 		LOGGER_INFO("Sccessfully copied data to the Vertex buffer");
 #endif // DEBUG
 
 		// Cleaning Staging Buffers after copying data to Vertex Buffer
-		vkDestroyBuffer(this->_vkDevice, this->_stagingBuffer, nullptr);
-		vkFreeMemory(this->_vkDevice, this->_stagingBufferMemory, nullptr);
+		vkDestroyBuffer(this->_vkDevice, stagingBuffer, nullptr);
+		vkFreeMemory(this->_vkDevice, stagingBufferMemory, nullptr);
+
+		this->createIndexBuffers(commandPool, graphicsQueue);
+	}
+
+	void Renderer::createIndexBuffers(const VkCommandPool& commandPool, const VkQueue& graphicsQueue) {
+		VkDeviceSize bufferSize = sizeof(this->_mesh->getIndices()[0]) * this->_mesh->getIndices().size();
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		
+		this->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(this->_vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, this->_mesh->getIndices().data(), (size_t)bufferSize);
+		vkUnmapMemory(this->_vkDevice, stagingBufferMemory);
+
+		this->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->_indexBuffer, this->_indexBufferMemory);
+
+		this->copyBuffer(commandPool, graphicsQueue, stagingBuffer, this->_indexBuffer, bufferSize);
+
+		vkDestroyBuffer(this->_vkDevice, stagingBuffer, nullptr);
+		vkFreeMemory(this->_vkDevice, stagingBufferMemory, nullptr);
+
+#if DEBUG
+		LOGGER_INFO("Successfully copied data to Index Buffer");
+#endif // DEBUG
+
 	}
 
 	void Renderer::copyBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, VkBuffer srcbuffer, VkBuffer destBuffer, VkDeviceSize size) {
@@ -118,7 +149,10 @@ namespace va {
 		VkDeviceSize offsets[] = { 0 };
 
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		vkCmdDraw(commandBuffer, static_cast<uint32_t>(this->_mesh->getVertices().size()), 1 , 0 , 0);
+		vkCmdBindIndexBuffer(commandBuffer, this->_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(this->_mesh->getIndices().size()), 1, 0, 0, 0);
+		//vkCmdDraw(commandBuffer, static_cast<uint32_t>(this->_mesh->getVertices().size()), 1 , 0 , 0);
 	}
 
 	uint32_t Renderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -135,6 +169,9 @@ namespace va {
 	}
 
 	Renderer::~Renderer() {
+		vkDestroyBuffer(this->_vkDevice, this->_indexBuffer, nullptr);
+		vkFreeMemory(this->_vkDevice, this->_indexBufferMemory, nullptr);
+
 		vkDestroyBuffer(this->_vkDevice, this->_vertexBuffer, nullptr);
 		vkFreeMemory(this->_vkDevice, this->_vertexBufferMemory, nullptr);
 	}

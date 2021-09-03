@@ -14,9 +14,10 @@ namespace va {
 	class Renderer
 	{
 	public:
-		Renderer(const VkPhysicalDevice&, const VkDevice&, std::vector<Vertex>);
+		Renderer(const VkPhysicalDevice&, const VkDevice&, Mesh&&);
 		void createVertexBuffers(const VkCommandPool&, const VkQueue&);
-		
+		void createIndexBuffers(const VkCommandPool&, const VkQueue&);
+
 		void render(const VkCommandBuffer&);
 		~Renderer();
 
@@ -33,10 +34,10 @@ namespace va {
 
 		VkBufferCreateInfo _vkBufferCreateInfo{};
 
-		VkBuffer _stagingBuffer; // Staging Buffer
-		VkDeviceMemory _stagingBufferMemory; // Staging Buffer Memory
+		VkBuffer _indexBuffer; // Index buffer
+		VkDeviceMemory _indexBufferMemory; // Index buffer memory
 
 		VkBuffer _vertexBuffer; // Vertex Buffer
-		VkDeviceMemory _vertexBufferMemory; //Vertex buffer Memory
+		VkDeviceMemory _vertexBufferMemory; //Vertex buffer memory
 	};
 }

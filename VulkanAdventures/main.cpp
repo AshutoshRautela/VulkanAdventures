@@ -35,13 +35,12 @@ va::Drawing* drawing;
 std::unique_ptr<va::Mesh> mesh;
 
 std::vector<va::Vertex> vertices = {
-	{{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
 	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
 };
+std::vector<uint16_t> indices = { 0 , 1 , 2 , 2 , 3 , 0 };
 
 int main(int args1, char** args2) {
 	try {
@@ -49,7 +48,7 @@ int main(int args1, char** args2) {
 		window = std::make_unique<va::VAWindow>(2048, 1024, "My Window");
 		vManager = std::make_unique<va::VulkanManager>(window, "My Application", "My Engine");
 		vGraphicsPipeline = std::make_unique<va::GraphicsPipeline>(vManager->getVkDevice());
-		renderer = std::make_unique<va::Renderer>(vManager->getPhysicalDevice(), vManager->getVkDevice(), vertices);
+		renderer = std::make_unique<va::Renderer>(vManager->getPhysicalDevice(), vManager->getVkDevice(), std::move(va::Mesh(std::move(vertices), std::move(indices))));
 		vGraphicsPipeline->startGraphicsPipelineProcess(
 			"./src/Shaders/vert.spv",
 			"./src/Shaders/frag.spv",
