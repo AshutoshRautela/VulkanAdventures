@@ -4,60 +4,113 @@ namespace va {
 
 	Renderer::Renderer(const VkPhysicalDevice& vkPhysicalDevice, const VkDevice& vkDevice, std::vector<Vertex> vertices):_vkPhysicalDevice(vkPhysicalDevice), _vkDevice(vkDevice) {
 		this->_mesh = std::make_unique<Mesh>(vertices);
-		this->createVertexBuffers();
-		this->allocateMemoryForVertexBuffers();
-		this->copyDataToVertexBuffer();
 	}
 
-	void Renderer::createVertexBuffers() {
+	void Renderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
 		this->_vkBufferCreateInfo = {};
 		this->_vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		this->_vkBufferCreateInfo.size = sizeof(this->_mesh->getVertices()[0]) * this->_mesh->getVertices().size();
-		this->_vkBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		this->_vkBufferCreateInfo.size = size;
+		this->_vkBufferCreateInfo.usage = usage;
 		this->_vkBufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		if (vkCreateBuffer(this->_vkDevice, &this->_vkBufferCreateInfo, nullptr, &this->_vertexBuffer) != VK_SUCCESS) {
+		if (vkCreateBuffer(this->_vkDevice, &this->_vkBufferCreateInfo, nullptr, &buffer) != VK_SUCCESS) {
 #if DEBUG
-			LOGGER_INFO("Failed to create Vertex Buffer");
+			LOGGER_ERROR("Failed to create buffer");
 #endif // DEBUG
-			throw std::runtime_error("Failed to create Vetex Buffer");
+			throw std::runtime_error("Failed to create buffer");
 		}
-#if DEBUG
-		LOGGER_INFO("Successfully created the Vertex Buffer");
-#endif // DEBUG
-	}
 
-	void Renderer::allocateMemoryForVertexBuffers() {
-		VkMemoryRequirements vkMemoryRequirements{};
-		vkGetBufferMemoryRequirements(this->_vkDevice, this->_vertexBuffer, &vkMemoryRequirements);
+#if DEBUG
+		LOGGER_INFO("Successfully created the Buffer");
+#endif // DEBUG
+
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(this->_vkDevice, buffer, &memRequirements);
 
 		VkMemoryAllocateInfo vkMemoryAllocateInfo{};
 		vkMemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		vkMemoryAllocateInfo.allocationSize = vkMemoryRequirements.size;
-		vkMemoryAllocateInfo.memoryTypeIndex = this->findMemoryType(vkMemoryRequirements.memoryTypeBits,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		vkMemoryAllocateInfo.allocationSize = memRequirements.size;
+		vkMemoryAllocateInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-		if (vkAllocateMemory(this->_vkDevice, &vkMemoryAllocateInfo, nullptr, &this->_vertexBufferMemory) != VK_SUCCESS) {
+		if (vkAllocateMemory(this->_vkDevice, &vkMemoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 #if DEBUG
-			LOGGER_ERROR("Failed to allocated memory for Vertex Buffer");
+			LOGGER_ERROR("Failed to allocated memory for the buffer");
 #endif // DEBUG
-			throw std::runtime_error("Failed to allocate memory for Vertex Buffer");
+			throw std::runtime_error("Failed to allocate memory for the buffer");
 		}
-		vkBindBufferMemory(this->_vkDevice, this->_vertexBuffer, this->_vertexBufferMemory, 0);
-#if DEBUG
-		LOGGER_INFO("Successfully allocated memory for Vertex Buffer");
-#endif
+
+		vkBindBufferMemory(this->_vkDevice, buffer, bufferMemory, 0);
 	}
 
-	void Renderer::copyDataToVertexBuffer() {
+	void Renderer::createVertexBuffers(const VkCommandPool& commandPool, const VkQueue& graphicsQueue) {
+		VkDeviceSize bufferSize = sizeof(this->_mesh->getVertices()[0]) * this->_mesh->getVertices().size();
+		
+		this->createBuffer(bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			this->_stagingBuffer,
+			this->_stagingBufferMemory
+		);
+
+		// Copy data to Staging Buffer
 		void* data;
-		vkMapMemory(this->_vkDevice, this->_vertexBufferMemory, 0, this->_vkBufferCreateInfo.size, 0, &data);
+		vkMapMemory(this->_vkDevice, this->_stagingBufferMemory, 0, this->_vkBufferCreateInfo.size, 0, &data);
 		memcpy(data, this->_mesh->getVertices().data(), (size_t)this->_vkBufferCreateInfo.size);
-		vkUnmapMemory(this->_vkDevice, this->_vertexBufferMemory);
+		vkUnmapMemory(this->_vkDevice, this->_stagingBufferMemory);
 #if DEBUG
-		LOGGER_INFO("Copied data to the Vertex Buffer");
+		LOGGER_INFO("Copied data to the Staging Buffer");
 #endif // DEBUG
 
+		this->createBuffer(bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			this->_vertexBuffer,
+			this->_vertexBufferMemory
+		);
+
+		this->copyBuffer(commandPool, graphicsQueue, this->_stagingBuffer, this->_vertexBuffer, bufferSize);
+#if DEBUG
+		LOGGER_INFO("Sccessfully copied data to the Vertex buffer");
+#endif // DEBUG
+
+		// Cleaning Staging Buffers after copying data to Vertex Buffer
+		vkDestroyBuffer(this->_vkDevice, this->_stagingBuffer, nullptr);
+		vkFreeMemory(this->_vkDevice, this->_stagingBufferMemory, nullptr);
+	}
+
+	void Renderer::copyBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, VkBuffer srcbuffer, VkBuffer destBuffer, VkDeviceSize size) {
+		VkCommandBufferAllocateInfo vkCommandBufferAllocateInfo{};
+		vkCommandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		vkCommandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		vkCommandBufferAllocateInfo.commandPool = commandPool;
+		vkCommandBufferAllocateInfo.commandBufferCount = 1;
+
+		VkCommandBuffer vkCommandBuffer;
+		vkAllocateCommandBuffers(this->_vkDevice, &vkCommandBufferAllocateInfo, &vkCommandBuffer);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(vkCommandBuffer, &beginInfo);
+
+		VkBufferCopy copyRegion{};
+		copyRegion.srcOffset = 0;
+		copyRegion.dstOffset = 0;
+		copyRegion.size = size;
+		vkCmdCopyBuffer(vkCommandBuffer, srcbuffer, destBuffer, 1, &copyRegion);
+
+		vkEndCommandBuffer(vkCommandBuffer);
+
+		VkSubmitInfo vkSubmitInfo{};
+		vkSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		vkSubmitInfo.commandBufferCount = 1;
+		vkSubmitInfo.pCommandBuffers = &vkCommandBuffer;
+
+		vkQueueSubmit(graphicsQueue, 1, &vkSubmitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(graphicsQueue);
+
+		vkFreeCommandBuffers(this->_vkDevice, commandPool, 1, &vkCommandBuffer);
 	}
 
 	void Renderer::render(const VkCommandBuffer& commandBuffer) {

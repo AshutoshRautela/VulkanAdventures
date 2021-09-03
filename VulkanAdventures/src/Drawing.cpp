@@ -186,6 +186,7 @@ namespace va {
 	void Drawing::prapareFrameBuffersAndCommandPool() {
 		this->createFrameBuffers();
 		this->createCommandPool();
+		this->_renderer->createVertexBuffers(this->_vkCommandPool, this->_vulkanManager->getGraphicsQueue());
 		this->prepareCommandBuffers();
 		this->createSyncObjects();
 	}

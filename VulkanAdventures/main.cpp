@@ -35,6 +35,9 @@ va::Drawing* drawing;
 std::unique_ptr<va::Mesh> mesh;
 
 std::vector<va::Vertex> vertices = {
+	{{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
 	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
 	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
 	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},

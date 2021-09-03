@@ -15,13 +15,15 @@ namespace va {
 	{
 	public:
 		Renderer(const VkPhysicalDevice&, const VkDevice&, std::vector<Vertex>);
+		void createVertexBuffers(const VkCommandPool&, const VkQueue&);
+		
 		void render(const VkCommandBuffer&);
 		~Renderer();
 
 	private:
-		void createVertexBuffers();
-		void allocateMemoryForVertexBuffers();
-		void copyDataToVertexBuffer();
+		void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer&, VkDeviceMemory&);
+		
+		void copyBuffer(const VkCommandPool&, const VkQueue&, VkBuffer, VkBuffer, VkDeviceSize);
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
@@ -31,7 +33,10 @@ namespace va {
 
 		VkBufferCreateInfo _vkBufferCreateInfo{};
 
+		VkBuffer _stagingBuffer; // Staging Buffer
+		VkDeviceMemory _stagingBufferMemory; // Staging Buffer Memory
+
 		VkBuffer _vertexBuffer; // Vertex Buffer
-		VkDeviceMemory _vertexBufferMemory;
+		VkDeviceMemory _vertexBufferMemory; //Vertex buffer Memory
 	};
 }
